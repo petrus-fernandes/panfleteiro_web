@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'my_flutter_app_icons.dart';
 
 import 'anuncio.dart';
 
@@ -69,39 +70,76 @@ class AnuncioGrid extends StatelessWidget {
                       ),
                     ),
                     Positioned(
-                        bottom: 8,
-                        right: 8,
-                        child: Row(
-                          children: [
-                            if (anuncio.dataValidade != null)
-                            Text(
-                              'Validade: ${anuncio.dataValidade != null ? DateFormat('dd/MM/yyyy').format(anuncio.dataValidade!) : "Não informada"}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                                ),
-                            ),
-                            if (anuncio.distancia != null)
-                            Padding(
-                              padding: const EdgeInsets.only(left: 8.0),
-                              child: Text(
-                                'Distância: ${anuncio.distancia != null ? '${anuncio.distancia} km' : "Não informada"}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
+                      bottom: 8,
+                      right: 8,
+                      child: Column(
+                        children: [
+                          if (anuncio.dataValidade != null)
+                          Text(
+                            'Validade: ${anuncio.dataValidade != null ? DateFormat('dd/MM/yyyy').format(anuncio.dataValidade!) : "Não informada"}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                              ),
+                          ),
+                          if (anuncio.distancia != null)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: RichText(
+                              text: TextSpan(
+                                children: <InlineSpan>[
+                                  WidgetSpan(
+                                    child: Icon(
+                                      MyFlutterApp.marker,
+                                      size: 12,
+                                      color: Colors.grey[600],
+                                      ),
                                   ),
+                                  TextSpan(
+                                    text: 'Distância: ',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                      ),
+                                  ),
+                                  TextSpan(
+                                    text: _distanciaText(anuncio),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ]
                               ),
                             ),
-                          ],
-                        )
-                    )
-                ])
-
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         );
       },
     );
+  }
+
+  String _distanciaText(Anuncio anuncio) {
+    if (anuncio.distancia == null) {
+      return '';
+    }
+
+    if (anuncio.distancia! < 1) {
+      String? distanceBasicFormat = anuncio.distancia?.toStringAsFixed(3);
+      double distanceBasicFormatDouble = double.parse(distanceBasicFormat!);
+      return  '${distanceBasicFormatDouble * 1000} m';
+    }
+    return '${_parseDecimalWithThreeDigits(anuncio.distancia)} km';
+  }
+
+  static String _parseDecimalWithThreeDigits(distance) {
+    return NumberFormat('#,##0.000', 'pt-BR').format(distance);
   }
 }

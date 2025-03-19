@@ -38,5 +38,5 @@ jobs:
           key: ${{secrets.EC2_SSH_KEY}}
           host: ${{secrets.EC2_HOST}}
           username: ${{secrets.EC2_USER}}
-          source: "build/web/"
+          source: "build/web/*"
           target: "/var/www/frontend"

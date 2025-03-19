@@ -1,0 +1,31 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+
+      - name: Build Flutter Web
+        run: flutter build web
+
+      - name: Deploy to Server
+        uses: appleboy/scp-action@master
+        with:
+          key: ${{secrets.EC2_SSH_KEY}}
+          host: ${{secrets.EC2_HOST}}
+          username: ${{secrets.EC2_USER}}
+          source: "build/web/"
+          target: "/var/www/frontend"

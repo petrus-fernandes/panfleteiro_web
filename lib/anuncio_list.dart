@@ -128,7 +128,7 @@ class _AnuncioListState extends State<AnuncioList> {
       body: Column(
         children: [
           Container(
-            margin: EdgeInsets.only(top: 40.0, left: 20.0, right: 20.0),
+            margin: EdgeInsets.only(top: 40.0, left: 40.0, right: 40.0),
             decoration: BoxDecoration(
               boxShadow: [
                 BoxShadow(
@@ -169,7 +169,10 @@ class _AnuncioListState extends State<AnuncioList> {
           ),
           SizedBox(height: 4),
           Expanded(
-            child: AnuncioGrid(anuncios: _anuncios), // Usa o AnuncioGrid aqui
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 60.0) ,
+              child: AnuncioGrid(anuncios: _anuncios),
+            ), // Usa o AnuncioGrid aqui
           ),
           if (_isLoading)
             Center(child: CircularProgressIndicator())

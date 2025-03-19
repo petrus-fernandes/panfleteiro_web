@@ -31,6 +31,7 @@ jobs:
           echo "$key" > private_key && chmod 600 private_key
           echo "Testing SSH connection with host:$host user:$username"
           ssh -o StrictHostKeyChecking=no -i private_key ${username}@${host}
+          echo tree -t
 
       - name: Deploy to Server
         uses: appleboy/scp-action@master
@@ -38,5 +39,5 @@ jobs:
           key: ${{secrets.EC2_SSH_KEY}}
           host: ${{secrets.EC2_HOST}}
           username: ${{secrets.EC2_USER}}
-          source: "build/web/*"
+          source: "build/web/"
           target: "/var/www/frontend"

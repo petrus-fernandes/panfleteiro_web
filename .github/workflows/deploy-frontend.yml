@@ -28,11 +28,12 @@ jobs:
           username: ${{secrets.EC2_USER}}
 
         run: |
-          tree -t
           echo "$key" > private_key && chmod 600 private_key
           echo "Testing SSH connection with host:$host user:$username"
           ssh -o StrictHostKeyChecking=no -i private_key ${username}@${host}
-          
+
+      - name: Compress build files
+        run: tar -czf build.tar.gz -C build/web .
 
       - name: Deploy to Server
         uses: appleboy/scp-action@master
@@ -40,5 +41,15 @@ jobs:
           key: ${{secrets.EC2_SSH_KEY}}
           host: ${{secrets.EC2_HOST}}
           username: ${{secrets.EC2_USER}}
-          source: "build/web/"
+          source: "build.tar.gz"
           target: "/var/www/frontend"
+
+      - name: Extract files on server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            tar -xzf /var/www/frontend/build.tar.gz -C /var/www/frontend
+            rm /var/www/frontend/build.tar.gz

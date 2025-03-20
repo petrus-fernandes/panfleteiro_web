@@ -35,6 +35,15 @@ jobs:
       - name: Compress build files
         run: tar -czf build.tar.gz -C build/web .
 
+      - name: Remove files on server
+        uses: appleboy/ssh-action@master
+        with:
+          key: ${{secrets.EC2_SSH_KEY}}
+          host: ${{secrets.EC2_HOST}}
+          username: ${{secrets.EC2_USER}}
+          script: |
+            rm -rf /var/www/frontend/*
+
       - name: Deploy to Server
         uses: appleboy/scp-action@master
         with:

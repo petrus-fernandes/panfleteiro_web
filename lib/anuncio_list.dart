@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import 'anuncio_grid.dart';
 import 'anuncio_service.dart';
 import 'anuncio.dart';
-import 'package:intl/intl.dart';
 
 class AnuncioList extends StatefulWidget {
   @override

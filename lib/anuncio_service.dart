@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'anuncio.dart';
 
 class AnuncioService {
-  final String baseUrl = "https://mercadao.co:8080";
+  final String baseUrl = "https://mercadao.co:8443";
 
   Future<List<Anuncio>> fetchAnunciosPorNome(String productName, int page, int size) async {
     final response = await http.get(Uri.parse('$baseUrl/v1/anuncios/buscaPorNome?productName=$productName&page=$page&size=$size'));

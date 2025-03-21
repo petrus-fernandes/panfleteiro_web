@@ -4,6 +4,18 @@ import 'my_flutter_app_icons.dart';
 
 import 'anuncio.dart';
 
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'my_flutter_app_icons.dart';
+
+import 'anuncio.dart';
+
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'my_flutter_app_icons.dart';
+
+import 'anuncio.dart';
+
 class AnuncioGrid extends StatelessWidget {
   final List<Anuncio> anuncios;
 
@@ -18,28 +30,40 @@ class AnuncioGrid extends StatelessWidget {
       decimalDigits: 2,
     );
 
+    // Define breakpoints para web, tablet e mobile
+    const double webBreakpoint = 1350;
+    const double tabletBreakpoint = 800;
+
     // Define o número de colunas com base na largura da tela
     int crossAxisCount;
-    if (screenWidth > 1350) {
-      crossAxisCount = 3; // Telas grandes (monitores)
-    } else if (screenWidth > 800) {
-      crossAxisCount = 2; // Telas médias (tablets)
+    if (screenWidth > webBreakpoint) {
+      crossAxisCount = 3; // Web: 3 colunas
+    } else if (screenWidth > tabletBreakpoint) {
+      crossAxisCount = 2; // Tablet: 2 colunas
     } else {
-      crossAxisCount = 1; // Telas pequenas (mobile)
+      crossAxisCount = 1; // Mobile: 1 coluna
     }
 
-    // Altura fixa desejada
-    final fixedHeight = 250.0;
+    // Define a altura fixa dos cards
+    final fixedHeight = screenWidth > tabletBreakpoint ? 250.0 : 300.0;
 
-    // Calcula a proporção com base na largura da tela e altura fixa
-    final childAspectRatio = (screenWidth / crossAxisCount) / fixedHeight;
+    // Define o padding com base no dispositivo
+    EdgeInsets padding;
+    if (screenWidth > webBreakpoint) {
+      padding = EdgeInsets.symmetric(horizontal: 120.0); // Web: margens laterais
+    } else if (screenWidth > tabletBreakpoint) {
+      padding = EdgeInsets.symmetric(horizontal: 60.0); // Tablet: margens menores
+    } else {
+      padding = EdgeInsets.only(right: 16.0); // Mobile: apenas margem direita
+    }
 
     return GridView.builder(
+      padding: padding, // Aplica o padding com base no dispositivo
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossAxisCount,
-        crossAxisSpacing: 60.0,
-        mainAxisSpacing: 30.0,
-        childAspectRatio: childAspectRatio, // Proporção ajustada dinamicamente
+        crossAxisCount: crossAxisCount, // Número de colunas
+        crossAxisSpacing: screenWidth > tabletBreakpoint ? 60.0 : 8.0, // Espaçamento entre colunas
+        mainAxisSpacing: screenWidth > tabletBreakpoint ? 30.0 : 8.0, // Espaçamento entre linhas
+        childAspectRatio: (screenWidth / crossAxisCount) / fixedHeight, // Proporção ajustada
       ),
       itemCount: anuncios.length,
       itemBuilder: (context, index) {
@@ -47,7 +71,7 @@ class AnuncioGrid extends StatelessWidget {
         return Card(
           child: Container(
             height: fixedHeight, // Altura fixa
-            padding: EdgeInsets.all(15.0),
+            padding: EdgeInsets.all(screenWidth > tabletBreakpoint ? 15.0 : 8.0), // Padding menor no mobile
             child: Stack(
               children: [
                 // Nome do produto
@@ -57,7 +81,10 @@ class AnuncioGrid extends StatelessWidget {
                   right: 8,
                   child: Text(
                     anuncio.nome,
-                    style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: screenWidth > tabletBreakpoint ? 40 : 24, // Fonte menor no mobile
+                      fontWeight: FontWeight.bold,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -69,7 +96,7 @@ class AnuncioGrid extends StatelessWidget {
                   child: Text(
                     formatter.format(anuncio.preco),
                     style: TextStyle(
-                      fontSize: 50,
+                      fontSize: screenWidth > tabletBreakpoint ? 50 : 30, // Fonte menor no mobile
                       fontWeight: FontWeight.bold,
                       color: Colors.red,
                     ),
@@ -86,7 +113,7 @@ class AnuncioGrid extends StatelessWidget {
                         Text(
                           'Validade: ${DateFormat('dd/MM/yyyy').format(anuncio.dataValidade!)}',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: screenWidth > tabletBreakpoint ? 12 : 10, // Fonte menor no mobile
                             color: Colors.grey[600],
                           ),
                         ),
@@ -99,7 +126,7 @@ class AnuncioGrid extends StatelessWidget {
                                 WidgetSpan(
                                   child: Icon(
                                     MyFlutterApp.marker,
-                                    size: 12,
+                                    size: screenWidth > tabletBreakpoint ? 12 : 10, // Ícone menor no mobile
                                     color: Colors.grey[600],
                                   ),
                                   alignment: PlaceholderAlignment.middle,
@@ -107,14 +134,14 @@ class AnuncioGrid extends StatelessWidget {
                                 TextSpan(
                                   text: ' Distância: ',
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: screenWidth > tabletBreakpoint ? 12 : 10, // Fonte menor no mobile
                                     color: Colors.grey[600],
                                   ),
                                 ),
                                 TextSpan(
                                   text: _distanciaText(anuncio),
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: screenWidth > tabletBreakpoint ? 12 : 10, // Fonte menor no mobile
                                     color: Colors.grey[600],
                                   ),
                                 ),

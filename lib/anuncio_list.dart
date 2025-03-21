@@ -20,104 +20,98 @@ class _AnuncioListState extends State<AnuncioList> {
   String _searchTerm = '';
   double _latitude = 0.0;
   double _longitude = 0.0;
+  bool _isSearchActive = false; // Controla se uma busca está ativa
 
-  Future<void> _performSearch() async {
+  Future<void> _loadAnuncios({bool isNewSearch = false}) async {
+    if (isNewSearch) {
+      // Se for uma nova busca, reseta a página e limpa a lista
+      setState(() {
+        _page = 0;
+        _anuncios.clear();
+        _isSearchActive = true; // Ativa a busca
+      });
+    }
+
     setState(() {
       _isLoading = true;
-      _anuncios.clear();
-      _page = 0;
     });
 
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    print('Carregando página: $_page'); // Log para depuração
 
-    if (!serviceEnabled) {
-      return Future.error('Location services are disabled.');
-    }
-
-    LocationPermission permission = await Geolocator.checkPermission();
-
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.error('Location permissions are denied');
+    try {
+      // Verifica se a busca está ativa e se a localização é necessária
+      if (_isSearchActive) {
+        // Obtém a localização do usuário
+        await _getUserLocation();
       }
-    }
 
-    if (permission == LocationPermission.deniedForever) {
-      return Future.error(
-          'Location permissions are permanently denied, we cannot request permissions.');
-    }
-
-    if (permission == LocationPermission.whileInUse ||
-        permission == LocationPermission.always) {
-      await Geolocator.getCurrentPosition().then((position) {
-        setState(() {
-          _latitude = position.latitude;
-          _longitude = position.longitude;
-        });
-      });
-
-      try {
-        final newAnuncios = await Provider.of<AnuncioService>(
+      List<Anuncio> newAnuncios;
+      if (_isSearchActive) {
+        // Se uma busca está ativa, carrega mais itens da busca
+        newAnuncios = await Provider.of<AnuncioService>(
           context,
           listen: false,
         ).fetchAnunciosPorLocalizacao(
             _latitude, _longitude, _searchTerm, _page, _size);
-
-        setState(() {
-          _anuncios.addAll(newAnuncios); // Adiciona os novos anúncios à lista
-          _isLoading = false;
-        });
-      } catch (e) {
-        setState(() {
-          _isLoading =
-          false; // Desativa o indicador de carregamento em caso de erro
-        });
-        print('Erro na busca: $e');
-      }
-    } else {
-      try {
-        final newAnuncios = await Provider.of<AnuncioService>(
+      } else {
+        // Caso contrário, carrega mais itens da lista inicial
+        newAnuncios = await Provider.of<AnuncioService>(
           context,
           listen: false,
         ).fetchAnunciosPorNome(_searchTerm, _page, _size);
+      }
 
+      print('Novos anúncios carregados: ${newAnuncios.length}'); // Log para depuração
+
+      // Verifica se há novos anúncios antes de adicionar
+      if (newAnuncios.isNotEmpty) {
         setState(() {
           _anuncios.addAll(newAnuncios); // Adiciona os novos anúncios à lista
-          _isLoading = false;
+          _page++; // Incrementa a página para o próximo carregamento
         });
-      } catch (e) {
+      } else {
         setState(() {
-          _isLoading =
-          false; // Desativa o indicador de carregamento em caso de erro
+          // Não há mais itens para carregar
         });
-        print('Erro na busca: $e');
       }
+    } catch (e) {
+      print('Erro ao carregar anúncios: $e'); // Log para depuração
+    } finally {
+      setState(() {
+        _isLoading = false; // Desativa o indicador de carregamento
+      });
     }
   }
 
+  Future<void> _getUserLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      throw 'Location services are disabled.';
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        throw 'Location permissions are denied';
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      throw 'Location permissions are permanently denied, we cannot request permissions.';
+    }
+
+    Position position = await Geolocator.getCurrentPosition();
+    setState(() {
+      _latitude = position.latitude;
+      _longitude = position.longitude;
+    });
+  }
 
   @override
   void initState() {
     super.initState();
-    _loadAnuncios();
-  }
-
-  void _loadAnuncios() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    final newAnuncios = await Provider.of<AnuncioService>(
-      context,
-      listen: false,
-    ).fetchAnunciosPorNome(_searchTerm, _page, _size);
-
-    setState(() {
-      _anuncios.addAll(newAnuncios);
-      _isLoading = false;
-      _page++;
-    });
+    _loadAnuncios(); // Carrega os anúncios iniciais
   }
 
   @override
@@ -162,14 +156,14 @@ class _AnuncioListState extends State<AnuncioList> {
               },
               onSubmitted: (value) {
                 // Realiza a busca quando o usuário pressiona "Enter"
-                _performSearch();
+                _loadAnuncios(isNewSearch: true); // Nova busca
               },
             ),
           ),
-          SizedBox(height: 4),
+          SizedBox(height: 50),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 60.0) ,
+              padding: const EdgeInsets.symmetric(horizontal: 120.0),
               child: AnuncioGrid(anuncios: _anuncios),
             ), // Usa o AnuncioGrid aqui
           ),
@@ -177,7 +171,7 @@ class _AnuncioListState extends State<AnuncioList> {
             Center(child: CircularProgressIndicator())
           else
             ElevatedButton(
-              onPressed: _loadAnuncios,
+              onPressed: () => _loadAnuncios(), // Carrega mais itens
               child: Text('Carregar mais'),
             ),
         ],

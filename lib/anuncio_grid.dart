@@ -11,7 +11,6 @@ class AnuncioGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Obtém a largura da tela
     final screenWidth = MediaQuery.of(context).size.width;
     final formatter = NumberFormat.currency(
       locale: "pt-BR",
@@ -29,19 +28,26 @@ class AnuncioGrid extends StatelessWidget {
       crossAxisCount = 1; // Telas pequenas (mobile)
     }
 
+    // Altura fixa desejada
+    final fixedHeight = 250.0;
+
+    // Calcula a proporção com base na largura da tela e altura fixa
+    final childAspectRatio = (screenWidth / crossAxisCount) / fixedHeight;
+
     return GridView.builder(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossAxisCount, // Número de colunas
-        crossAxisSpacing: 8.0, // Espaçamento entre colunas
-        mainAxisSpacing: 8.0, // Espaçamento entre linhas
-        childAspectRatio: 3.0, // Proporção de cada item (largura/altura)
+        crossAxisCount: crossAxisCount,
+        crossAxisSpacing: 60.0,
+        mainAxisSpacing: 30.0,
+        childAspectRatio: childAspectRatio, // Proporção ajustada dinamicamente
       ),
       itemCount: anuncios.length,
       itemBuilder: (context, index) {
         final anuncio = anuncios[index];
         return Card(
           child: Container(
-            padding: EdgeInsets.all(8.0),
+            height: fixedHeight, // Altura fixa
+            padding: EdgeInsets.all(15.0),
             child: Stack(
               children: [
                 // Nome do produto
@@ -59,7 +65,7 @@ class AnuncioGrid extends StatelessWidget {
                 // Preço no canto inferior esquerdo
                 Positioned(
                   bottom: 8,
-                  left: 8,
+                  right: 8,
                   child: Text(
                     formatter.format(anuncio.preco),
                     style: TextStyle(
@@ -72,9 +78,9 @@ class AnuncioGrid extends StatelessWidget {
                 // Validade e distância no canto inferior direito
                 Positioned(
                   bottom: 8,
-                  right: 8,
+                  left: 8,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (anuncio.dataValidade != null)
                         Text(
@@ -86,7 +92,7 @@ class AnuncioGrid extends StatelessWidget {
                         ),
                       if (anuncio.distancia != null)
                         Padding(
-                          padding: const EdgeInsets.only(left: 8.0),
+                          padding: const EdgeInsets.only(left: 1.0),
                           child: RichText(
                             text: TextSpan(
                               children: <InlineSpan>[
@@ -96,6 +102,7 @@ class AnuncioGrid extends StatelessWidget {
                                     size: 12,
                                     color: Colors.grey[600],
                                   ),
+                                  alignment: PlaceholderAlignment.middle,
                                 ),
                                 TextSpan(
                                   text: ' Distância: ',

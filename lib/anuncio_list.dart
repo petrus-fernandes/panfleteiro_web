@@ -133,7 +133,7 @@ class _AnuncioListState extends State<AnuncioList> {
     }
 
     // Define a altura fixa dos cards
-    final fixedHeight = screenWidth > tabletBreakpoint ? 250.0 : 300.0;
+    final fixedHeight = screenWidth > tabletBreakpoint ? 250.0 : 150.0;
 
     // Define o padding com base no dispositivo
     EdgeInsets padding;
@@ -142,7 +142,7 @@ class _AnuncioListState extends State<AnuncioList> {
     } else if (screenWidth > tabletBreakpoint) {
       padding = EdgeInsets.symmetric(horizontal: 60.0); // Tablet: margens menores
     } else {
-      padding = EdgeInsets.only(right: 16.0); // Mobile: apenas margem direita
+      padding = EdgeInsets.only(right: 70.0); // Mobile: apenas margem direita
     }
 
     return Scaffold(

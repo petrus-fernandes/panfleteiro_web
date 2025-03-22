@@ -116,6 +116,35 @@ class _AnuncioListState extends State<AnuncioList> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // Define breakpoints para web, tablet e mobile
+    const double webBreakpoint = 1350;
+    const double tabletBreakpoint = 800;
+
+    // Define o número de colunas com base na largura da tela
+    int crossAxisCount;
+    if (screenWidth > webBreakpoint) {
+      crossAxisCount = 3; // Web: 3 colunas
+    } else if (screenWidth > tabletBreakpoint) {
+      crossAxisCount = 2; // Tablet: 2 colunas
+    } else {
+      crossAxisCount = 1; // Mobile: 1 coluna
+    }
+
+    // Define a altura fixa dos cards
+    final fixedHeight = screenWidth > tabletBreakpoint ? 250.0 : 300.0;
+
+    // Define o padding com base no dispositivo
+    EdgeInsets padding;
+    if (screenWidth > webBreakpoint) {
+      padding = EdgeInsets.symmetric(horizontal: 120.0); // Web: margens laterais
+    } else if (screenWidth > tabletBreakpoint) {
+      padding = EdgeInsets.symmetric(horizontal: 60.0); // Tablet: margens menores
+    } else {
+      padding = EdgeInsets.only(right: 16.0); // Mobile: apenas margem direita
+    }
+
     return Scaffold(
       appBar: appBar(),
       body: Column(
@@ -163,8 +192,12 @@ class _AnuncioListState extends State<AnuncioList> {
           SizedBox(height: 50),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 120.0),
-              child: AnuncioGrid(anuncios: _anuncios),
+              padding: padding, // Usa o padding definido com base no dispositivo
+              child: AnuncioGrid(
+                anuncios: _anuncios,
+                crossAxisCount: crossAxisCount, // Passa o número de colunas
+                fixedHeight: fixedHeight, // Passa a altura fixa dos cards
+              ),
             ), // Usa o AnuncioGrid aqui
           ),
           if (_isLoading)

@@ -19,7 +19,10 @@ jobs:
           channel: 'stable'
 
       - name: Build Flutter Web
-        run: flutter build web
+        run: |
+          echo "GOOGLE_MAPS_API_KEY=${{secrets.PROD_GOOGLE_MAPS_KEY}}" > .env
+          flutter build web
+          rm .env  # Remova após o build se necessário
 
       - name: Test SSH connection
         env:

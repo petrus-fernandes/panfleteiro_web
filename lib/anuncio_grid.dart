@@ -264,7 +264,7 @@ class AnuncioModal extends StatelessWidget {
                             ? GestureDetector(
                               onTap: _openGoogleMaps,
                               child: Image.network(
-                                'https://maps.googleapis.com/maps/api/staticmap?center=${anuncio.latitude},${anuncio.longitude}&zoom=15&size=600x300&maptype=roadmap&markers=color:red%7C${anuncio.latitude},${anuncio.longitude}&key=${dotenv.env['GOOGLE_MAPS_API_KEY']}',
+                                'https://maps.googleapis.com/maps/api/staticmap?center=${anuncio.latitude},${anuncio.longitude}&zoom=15&size=600x300&maptype=roadmap&markers=color:red%7C${anuncio.latitude},${anuncio.longitude}&key=${dotenv.env['GOOGLE_API_KEY']}',
                                 fit: BoxFit.cover,
                                 headers: {'Accept': 'image/*'}, // Adicione headers para melhor compatibilidade
                                 loadingBuilder:

@@ -20,9 +20,9 @@ jobs:
 
       - name: Build Flutter Web
         run: |
-          echo "GOOGLE_MAPS_API_KEY=${{secrets.PROD_GOOGLE_MAPS_KEY}}" > .env
+          echo "GOOGLE_API_KEY=${{secrets.GOOGLE_API_KEY}}" > .env
+          echo "API_BASE_URL=${{secrets.API_BASE_URL}}" >> .env
           flutter build web
-          rm .env  # Remova após o build se necessário
 
       - name: Test SSH connection
         env:
@@ -74,8 +74,7 @@ jobs:
           username: ${{secrets.EC2_USER}}
           script: |
             cat > /var/www/frontend/.env <<EOF
-            GOOGLE_MAPS_API_KEY=${{secrets.PROD_GOOGLE_MAPS_KEY}}
-            API_BASE_URL=${{secrets.PROD_API_BASE_URL}}
-            # Outras variáveis...
+            GOOGLE_MAPS_API_KEY=${{secrets.GOOGLE_API_KEY}}
+            API_BASE_URL=${{secrets.API_BASE_URL}}
             EOF
             chmod 600 /var/www/frontend/.env

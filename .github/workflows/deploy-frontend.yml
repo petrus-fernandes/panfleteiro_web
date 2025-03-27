@@ -62,3 +62,17 @@ jobs:
           script: |
             tar -xzf /var/www/frontend/build.tar.gz -C /var/www/frontend
             rm /var/www/frontend/build.tar.gz
+
+      - name: Create .env on server
+        uses: appleboy/ssh-action@master
+        with:
+          key: ${{secrets.EC2_SSH_KEY}}
+          host: ${{secrets.EC2_HOST}}
+          username: ${{secrets.EC2_USER}}
+          script: |
+            cat > /var/www/frontend/.env <<EOF
+            GOOGLE_MAPS_API_KEY=${{secrets.PROD_GOOGLE_MAPS_KEY}}
+            API_BASE_URL=${{secrets.PROD_API_BASE_URL}}
+            # Outras variáveis...
+            EOF
+            chmod 600 /var/www/frontend/.env

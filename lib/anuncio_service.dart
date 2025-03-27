@@ -1,9 +1,10 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'anuncio.dart';
 
 class AnuncioService {
-  final String baseUrl = "https://mercadao.co:8443";
+  final String baseUrl = dotenv.env['API_BASE_URL']!;
 
   Future<List<Anuncio>> fetchAnunciosPorNome(String productName, int page, int size) async {
     final response = await http.get(Uri.parse('$baseUrl/v1/anuncios/buscaPorNome?productName=$productName&page=$page&size=$size'));

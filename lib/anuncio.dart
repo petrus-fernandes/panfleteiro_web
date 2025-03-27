@@ -1,9 +1,15 @@
+import 'package:intl/intl.dart';
+
 class Anuncio {
   final String nome;
   final double preco;
   final DateTime? dataValidade;
   final double? distancia;
   final String link;
+  final double? latitude;
+  final double? longitude;
+  final String? marketName;
+  final String? marketAddress;
 
   Anuncio({
     required this.nome,
@@ -11,6 +17,10 @@ class Anuncio {
     required this.dataValidade,
     required this.distancia,
     required this.link,
+    required this.latitude,
+    required this.longitude,
+    required this.marketName,
+    required this.marketAddress,
   });
 
   factory Anuncio.fromJson(Map<String, dynamic> json) {
@@ -20,6 +30,10 @@ class Anuncio {
       dataValidade: json['expirationDate'] != null ? _parseDate(json['expirationDate']) : null,
       distancia: json['distance']?.toDouble(),
       link: json['url'],
+      latitude: json['latitude']?.toDouble(),
+      longitude: json['longitude']?.toDouble(),
+      marketName: json['marketName'],
+      marketAddress: json['marketAddress'],
     );
   }
 
@@ -34,4 +48,22 @@ class Anuncio {
       throw FormatException('Formato de data inválido: $dateString');
     }
   }
+
+  String distanciaText() {
+    if (distancia == null) {
+      return '';
+    }
+
+    if (distancia! < 1) {
+      String? distanceBasicFormat = distancia?.toStringAsFixed(3);
+      double distanceBasicFormatDouble = double.parse(distanceBasicFormat!);
+      return '${distanceBasicFormatDouble * 1000} m';
+    }
+    return '${_roundMetricScale(distancia)} km';
+  }
+
+  static String _roundMetricScale(distance) {
+    return NumberFormat('#,#0.0', 'pt-BR').format(distance);
+  }
+
 }

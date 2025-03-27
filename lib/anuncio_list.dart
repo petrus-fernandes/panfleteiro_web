@@ -94,7 +94,14 @@ class _AnuncioListState extends State<AnuncioList> {
       throw 'Location permissions are permanently denied, we cannot request permissions.';
     }
 
-    Position position = await Geolocator.getCurrentPosition();
+    const LocationSettings locationSettings = LocationSettings(
+      accuracy: LocationAccuracy.bestForNavigation,
+      distanceFilter: 10,
+    );
+
+    Position position = await Geolocator.getCurrentPosition(
+      locationSettings: locationSettings,
+    );
     setState(() {
       _latitude = position.latitude;
       _longitude = position.longitude;

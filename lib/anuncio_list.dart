@@ -1,5 +1,6 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'package:provider/provider.dart';
@@ -12,6 +13,21 @@ class AnuncioList extends StatefulWidget {
   _AnuncioListState createState() => _AnuncioListState();
 }
 
+class _Debouncer {
+  final int milliseconds;
+  VoidCallback? action;
+  Timer? _timer;
+
+  _Debouncer({required this.milliseconds});
+
+  void run(VoidCallback action) {
+    if (_timer != null) {
+      _timer!.cancel();
+    }
+    _timer = Timer(Duration(milliseconds: milliseconds), action);
+  }
+}
+
 class _AnuncioListState extends State<AnuncioList> {
   int _page = 0;
   final int _size = 10;
@@ -21,6 +37,9 @@ class _AnuncioListState extends State<AnuncioList> {
   double _latitude = 0.0;
   double _longitude = 0.0;
   bool _isSearchActive = false;
+  final ScrollController _scrollController = ScrollController();
+  bool _hasMore = true;
+  final _Debouncer _scrollDebouncer = _Debouncer(milliseconds: 500);
 
   Future<void> _loadAnuncios({bool isNewSearch = false}) async {
     if (isNewSearch) {
@@ -28,22 +47,21 @@ class _AnuncioListState extends State<AnuncioList> {
         _page = 0;
         _anuncios.clear();
         _isSearchActive = true;
+        _hasMore = true; // Resetar quando for uma nova busca
       });
     }
+
+    // Se não há mais itens ou está carregando, não faz nada
+    if (!_hasMore || _isLoading) return;
 
     setState(() {
       _isLoading = true;
     });
 
-    print('Carregando página: $_page');
-
     try {
-      if (_isSearchActive) {
-        await _getUserLocation();
-      }
-
       List<Anuncio> newAnuncios;
       if (_isSearchActive) {
+        await _getUserLocation();
         newAnuncios = await Provider.of<AnuncioService>(
           context,
           listen: false,
@@ -56,17 +74,12 @@ class _AnuncioListState extends State<AnuncioList> {
         ).fetchAnunciosPorNome(_searchTerm, _page, _size);
       }
 
-      print('Novos anúncios carregados: ${newAnuncios.length}');
-
-      if (newAnuncios.isNotEmpty) {
-        setState(() {
-          _anuncios.addAll(newAnuncios);
-          _page++;
-        });
-      } else {
-        setState(() {
-        });
-      }
+      setState(() {
+        _anuncios.addAll(newAnuncios);
+        _page++;
+        // Se vier menos itens que o tamanho da página, não há mais itens
+        _hasMore = newAnuncios.length >= _size;
+      });
     } catch (e) {
       print('Erro ao carregar anúncios: $e');
     } finally {
@@ -111,7 +124,26 @@ class _AnuncioListState extends State<AnuncioList> {
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_scrollListener);
     _loadAnuncios();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollListener() {
+    _scrollDebouncer.run(() {
+      if (_scrollController.position.pixels >
+          _scrollController.position.maxScrollExtent - 100 &&
+          !_isLoading &&
+          _hasMore) {
+        _loadAnuncios();
+      }
+    });
   }
 
   @override
@@ -156,39 +188,22 @@ class _AnuncioListState extends State<AnuncioList> {
         children: [
           Container(
             margin: textFieldPadding,
-            decoration: BoxDecoration(
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0xff1D1617).withOpacity(0.11),
-                  spreadRadius: 0,
-                  blurRadius: 50,
-                ),
-              ],
-            ),
-            child: TextField(
-              decoration: InputDecoration(
-                contentPadding: EdgeInsets.all(15.0),
-                filled: true,
-                fillColor: Colors.white,
-                prefixIcon: Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: SvgPicture.asset('assets/icons/search.svg'),
-                ),
-                hintText: 'Digite o nome do produto',
-                hintStyle: TextStyle(
-                  color: Color(0xffDDDADA),
-                  fontSize: 14.0,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15.0),
-                  borderSide: BorderSide.none,
+            child: SearchBar(
+              hintText: 'Digite o nome do produto',
+              hintStyle: MaterialStateProperty.all(
+                TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              ),
+              leading: Icon(Icons.search),
+              elevation: MaterialStateProperty.all(1),
+              shape: MaterialStateProperty.all(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
                 ),
               ),
               onChanged: (value) {
                 _searchTerm = value;
               },
               onSubmitted: (value) {
-                // Realiza a busca quando o usuário pressiona "Enter"
                 _loadAnuncios(isNewSearch: true);
               },
             ),
@@ -197,20 +212,58 @@ class _AnuncioListState extends State<AnuncioList> {
           Expanded(
             child: Padding(
               padding: gridPadding,
-              child: AnuncioGrid(
-                anuncios: _anuncios,
-                crossAxisCount: crossAxisCount,
-                fixedHeight: fixedHeight,
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (scrollNotification) {
+                  if (scrollNotification is ScrollUpdateNotification &&
+                      _scrollController.position.pixels >
+                          _scrollController.position.maxScrollExtent - 500 &&
+                      !_isLoading &&
+                      _hasMore) {
+                    _loadAnuncios();
+                  }
+                  return false;
+                },
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: AnuncioGrid(
+                        anuncios: _anuncios,
+                        crossAxisCount: crossAxisCount,
+                        fixedHeight: fixedHeight,
+                      ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: _isLoading
+                          ? Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                          : SizedBox.shrink(),
+                    ),
+                    SliverToBoxAdapter(
+                      child: !_hasMore && _anuncios.isNotEmpty
+                          ? Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Center(
+                          child: Text(
+                            'Todos os itens foram carregados',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ),
+                      )
+                          : SizedBox.shrink(),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-          if (_isLoading)
-            Center(child: CircularProgressIndicator())
-          else
-            ElevatedButton(
-              onPressed: () => _loadAnuncios(),
-              child: Text('Carregar mais'),
-            ),
         ],
       ),
     );
@@ -223,12 +276,13 @@ class _AnuncioListState extends State<AnuncioList> {
         style: TextStyle(
           fontSize: 25.0,
           fontWeight: FontWeight.bold,
-          color: Colors.redAccent,
+          color: Colors.red.shade500,
         ),
       ),
       centerTitle: true,
-      backgroundColor: Colors.white,
-      elevation: 1.0,
+      elevation: 0,
+      scrolledUnderElevation: 1,
+      surfaceTintColor: Theme.of(context).colorScheme.surface,
     );
   }
 }

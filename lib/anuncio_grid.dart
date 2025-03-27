@@ -39,13 +39,14 @@ class AnuncioGrid extends StatelessWidget {
     );
 
     return GridView.builder(
-      padding: EdgeInsets.zero, // Remove o padding interno do GridView
+      padding: EdgeInsets.zero,
+      physics: NeverScrollableScrollPhysics(), // Desabilita o scroll interno
+      shrinkWrap: true, // Importante para funcionar dentro do CustomScrollView
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossAxisCount, // Número de colunas
-        crossAxisSpacing: isMobile ? 8.0 : 60.0, // Espaçamento entre colunas
-        mainAxisSpacing: isMobile ? 8.0 : 30.0, // Espaçamento entre linhas
-        childAspectRatio:
-            (screenWidth / crossAxisCount) / fixedHeight, // Proporção ajustada
+        crossAxisCount: crossAxisCount,
+        crossAxisSpacing: isMobile ? 8.0 : 60.0,
+        mainAxisSpacing: isMobile ? 8.0 : 30.0,
+        childAspectRatio: (screenWidth / crossAxisCount) / fixedHeight,
       ),
       itemCount: anuncios.length,
       itemBuilder: (context, index) {
@@ -53,11 +54,28 @@ class AnuncioGrid extends StatelessWidget {
         return GestureDetector(
           onTap: () => _showAnuncioModal(context, anuncio),
           child: Card(
+            elevation: 1,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Container(
               height: fixedHeight,
-              // Altura fixa
-              padding: EdgeInsets.all(isMobile ? 8.0 : 15.0),
-              // Padding menor no mobile
+              padding: EdgeInsets.all(isMobile ? 12.0 : 20.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Theme.of(
+                      context,
+                    ).colorScheme.surfaceVariant.withOpacity(0.5),
+                    Theme.of(
+                      context,
+                    ).colorScheme.surfaceVariant.withOpacity(0.2),
+                  ],
+                ),
+              ),
               child: Stack(
                 children: [
                   // Nome do produto
@@ -186,40 +204,69 @@ class AnuncioModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-
     return Container(
-      padding: EdgeInsets.all(20),
-      height: screenHeight * 0.85,
+      padding: EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
         children: [
+          // Cabeçalho do modal
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               IconButton(
                 icon: Icon(Icons.close),
                 onPressed: () => Navigator.pop(context),
+                style: IconButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                ),
               ),
             ],
           ),
 
+          // Conteúdo
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Título
                   Text(
                     anuncio.nome,
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  SizedBox(height: 10),
-                  Text(
-                    'Preço: ${NumberFormat.currency(locale: "pt-BR", symbol: "R\$ ").format(anuncio.preco)}',
-                    style: TextStyle(fontSize: 18),
+                  SizedBox(height: 16),
+
+                  // Preço com destaque
+                  Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          NumberFormat.currency(
+                            locale: "pt-BR",
+                            symbol: "R\$ ",
+                          ).format(anuncio.preco),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.headlineSmall?.copyWith(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   if (anuncio.dataValidade != null) ...[
                     SizedBox(height: 10),
@@ -261,12 +308,11 @@ class AnuncioModal extends StatelessWidget {
                     ),
                     child:
                         anuncio.latitude != null && anuncio.longitude != null
-                            ? GestureDetector(
-                              onTap: _openGoogleMaps,
-                              child: Image.network(
-                                'https://maps.googleapis.com/maps/api/staticmap?center=${anuncio.latitude},${anuncio.longitude}&zoom=15&size=600x300&maptype=roadmap&markers=color:red%7C${anuncio.latitude},${anuncio.longitude}&key=${dotenv.env['GOOGLE_API_KEY']}',
+                            ? Image.network(
+                                'https://maps.googleapis.com/maps/api/staticmap?center=${anuncio.latitude},${anuncio.longitude}&zoom=15&size=1000x400&maptype=roadmap&markers=color:red%7C${anuncio.latitude},${anuncio.longitude}&key=${dotenv.env['GOOGLE_API_KEY']}',
                                 fit: BoxFit.cover,
-                                headers: {'Accept': 'image/*'}, // Adicione headers para melhor compatibilidade
+                                headers: {'Accept': 'image/*'},
+                                // Adicione headers para melhor compatibilidade
                                 loadingBuilder:
                                     (_, child, progress) =>
                                         progress == null
@@ -286,8 +332,8 @@ class AnuncioModal extends StatelessWidget {
                                         ],
                                       ),
                                     ),
-                              ),
-                            )
+                              )
+
                             : Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -303,22 +349,23 @@ class AnuncioModal extends StatelessWidget {
             ),
           ),
 
+          SizedBox(height: 24),
           if (anuncio.latitude != null && anuncio.longitude != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 20),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  minimumSize: Size(double.infinity, 50),
-                  backgroundColor: Colors.blue[700],
+            FilledButton.tonal(
+              onPressed: _openGoogleMaps,
+              style: FilledButton.styleFrom(
+                minimumSize: Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                onPressed: _openGoogleMaps,
-                child: Text(
-                  'Abrir no Google Maps',
-                  style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                  ),
-                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.map),
+                  SizedBox(width: 8),
+                  Text('Abrir no Google Maps'),
+                ],
               ),
             ),
         ],

@@ -26,14 +26,14 @@ class Anuncio {
   factory Anuncio.fromJson(Map<String, dynamic> json) {
     return Anuncio(
       nome: json['productName'],
-      preco: json['price'].toDouble(),
+      preco: json['price']?.toDouble(),
       dataValidade: json['expirationDate'] != null ? _parseDate(json['expirationDate']) : null,
       distancia: json['distance']?.toDouble(),
       link: json['url'],
-      latitude: json['latitude']?.toDouble(),
-      longitude: json['longitude']?.toDouble(),
-      marketName: json['marketName'],
-      marketAddress: json['marketAddress'],
+      latitude: json['market']?['location']?['latitude'].toDouble(),
+      longitude: json['market']?['location']?['longitude']?.toDouble(),
+      marketName: json['market']?['name'],
+      marketAddress: json['market']?['location']?['address']
     );
   }
 
@@ -65,5 +65,4 @@ class Anuncio {
   static String _roundMetricScale(distance) {
     return NumberFormat('#,#0.0', 'pt-BR').format(distance);
   }
-
 }

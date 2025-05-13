@@ -5,7 +5,7 @@ class Anuncio {
   final double preco;
   final DateTime? dataValidade;
   final double? distancia;
-  final String link;
+  final String? link;
   final double? latitude;
   final double? longitude;
   final String? marketName;

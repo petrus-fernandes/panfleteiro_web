@@ -203,6 +203,12 @@ class AnuncioModal extends StatelessWidget {
     }
   }
 
+  Future<void> _openAnunciante() async {
+    if (await canLaunch(anuncio.link ?? '')) {
+      await launch(anuncio.link ?? '', forceSafariVC: false, forceWebView: false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -436,6 +442,25 @@ class AnuncioModal extends StatelessWidget {
                 ],
               ),
             ),
+          SizedBox(height: 8),
+          FilledButton.tonal(
+            onPressed: _openAnunciante,
+            style: FilledButton.styleFrom(
+              minimumSize: Size(double.infinity, 50),
+              backgroundColor: Colors.red.shade200,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.map),
+                SizedBox(width: 8),
+                Text('Abrir Anúncio'),
+              ],
+            ),
+          ),
         ],
       ),
     );

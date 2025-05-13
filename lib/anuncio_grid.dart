@@ -455,7 +455,7 @@ class AnuncioModal extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.map),
+                Icon(Icons.add_business_rounded),
                 SizedBox(width: 8),
                 Text('Abrir Anúncio'),
               ],

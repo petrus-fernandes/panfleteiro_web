@@ -271,15 +271,36 @@ class _AnuncioListState extends State<AnuncioList> {
 
   appBar() {
     return AppBar(
-      title: Text(
-        'Mercadão',
-        style: TextStyle(
-          fontSize: 25.0,
-          fontWeight: FontWeight.bold,
-          color: Colors.red.shade500,
-        ),
+      title: Row(
+        mainAxisSize: MainAxisSize.min, // Impede que o Row ocupe toda a largura
+        mainAxisAlignment: MainAxisAlignment.center, // Centraliza o grupo (imagem + texto)
+        children: [
+          // Imagem (clicável e alinhada à esquerda do texto)
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).pushReplacementNamed('/main');
+            },
+            child: Image.asset(
+              'assets/logo.png',
+              height: 65, // Ajuste conforme necessário
+            ),
+          ),
+          SizedBox(width: 8), // Espaço entre a imagem e o texto
+          // Texto "Mercadão" (com ajuste vertical)
+          Padding(
+            padding: EdgeInsets.only(top: 6.0), // Ajuste vertical (4px para baixo)
+            child: Text(
+              'Mercadão',
+              style: TextStyle(
+                fontSize: 25.0,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFD32F2F),
+              ),
+            ),
+          ),
+        ],
       ),
-      centerTitle: true,
+      centerTitle: true, // Centraliza o Row no AppBar
       elevation: 0,
       scrolledUnderElevation: 1,
       surfaceTintColor: Theme.of(context).colorScheme.surface,

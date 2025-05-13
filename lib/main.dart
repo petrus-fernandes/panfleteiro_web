@@ -28,6 +28,9 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: AnuncioList(),
+      routes: {
+        '/main': (context) => AnuncioList(),
+      },
     );
   }
 }

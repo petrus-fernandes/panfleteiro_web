@@ -172,14 +172,15 @@ class _AnuncioListState extends State<AnuncioList> {
     } else if (screenWidth > tabletBreakpoint) {
       gridPadding = EdgeInsets.symmetric(horizontal: 90.0);
     } else {
-      gridPadding = EdgeInsets.only(right: 70.0);
+      gridPadding = EdgeInsets.only(left: 15.0, right: 15.0);
     }
 
+    //
     EdgeInsets textFieldPadding;
     if (screenWidth > tabletBreakpoint) {
       textFieldPadding = EdgeInsets.only(left: 40.0, right: 40.0, top: 40.0); // Web/Tablet
     } else {
-      textFieldPadding = EdgeInsets.only(left: 0.0, right: 15.0, top: 40.0); // Mobile
+      textFieldPadding = EdgeInsets.only(left: 5.0, right: 5.0, top: 40.0); // Mobile
     }
 
     return Scaffold(

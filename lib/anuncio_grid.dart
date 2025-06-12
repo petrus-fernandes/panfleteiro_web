@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'my_flutter_app_icons.dart';
 
 import 'anuncio.dart';
+import 'my_flutter_app_icons.dart';
 
 class AnuncioGrid extends StatelessWidget {
   final List<Anuncio> anuncios;
@@ -56,26 +56,28 @@ class AnuncioGrid extends StatelessWidget {
           child: Card(
             elevation: 1,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12),
             ),
+            color: !anuncio.active ? Colors.grey[300] : null, // Cor de fundo acinzentada para desativados
             child: Container(
-              height: fixedHeight,
-              padding: EdgeInsets.all(isMobile ? 12.0 : 20.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Theme.of(
-                      context,
-                    ).colorScheme.surfaceVariant.withOpacity(0.5),
-                    Theme.of(
-                      context,
-                    ).colorScheme.surfaceVariant.withOpacity(0.2),
-                  ],
-                ),
+            height: fixedHeight,
+            padding: EdgeInsets.all(isMobile ? 12.0 : 20.0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              gradient: !anuncio.active ? null : LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: !anuncio.active
+                    ? [Colors.grey[400]!, Colors.grey[300]!] // Gradiente cinza para desativados
+                    : [
+                  Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+                  Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.2),
+                ],
               ),
+              color: !anuncio.active ? Colors.grey[300] : null, // Cor de fundo adicional
+            ),
+            child: Opacity(
+              opacity: !anuncio.active ? 0.6 : 1.0, // Reduz a opacidade para desativados
               child: Stack(
                 children: [
                   // Nome do produto
@@ -131,6 +133,7 @@ class AnuncioGrid extends StatelessWidget {
                             text: DateFormat('dd/MM/yy').format(anuncio.dataValidade!),
                             isMobile: isMobile,
                             color: Colors.red.shade100,
+                            anuncio: anuncio
                           ),
                         if (anuncio.distancia != null)
                           _buildInfoChip(
@@ -139,6 +142,7 @@ class AnuncioGrid extends StatelessWidget {
                             text: anuncio.distanciaText(),
                             isMobile: isMobile,
                             color: null,
+                            anuncio: anuncio
                           ),
                       ],
                     ),
@@ -147,6 +151,7 @@ class AnuncioGrid extends StatelessWidget {
               ),
             ),
           ),
+        )
         );
       },
     );
@@ -157,12 +162,17 @@ class AnuncioGrid extends StatelessWidget {
     required String text,
     required bool isMobile,
     Color? color,
+    required Anuncio anuncio
   }) {
+    final isDesativado = !anuncio.active;
+
     return Container(
       margin: EdgeInsets.only(bottom: 4),
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color ?? Theme.of(context).colorScheme.surfaceVariant,
+        color: isDesativado
+            ? Colors.grey[400]
+            : color ?? Theme.of(context).colorScheme.surfaceVariant,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -171,14 +181,18 @@ class AnuncioGrid extends StatelessWidget {
           Icon(
             icon,
             size: isMobile ? 12 : 14,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            color: isDesativado
+                ? Colors.grey[700]
+                : Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
           ),
           SizedBox(width: 4),
           Text(
             text,
             style: TextStyle(
               fontSize: isMobile ? 11 : 13,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+              color: isDesativado
+                  ? Colors.grey[700]
+                  : Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
               fontWeight: FontWeight.w600,
             ),
           ),

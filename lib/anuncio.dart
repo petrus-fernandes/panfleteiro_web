@@ -10,6 +10,7 @@ class Anuncio {
   final double? longitude;
   final String? marketName;
   final String? marketAddress;
+  final bool active;
 
   Anuncio({
     required this.nome,
@@ -21,6 +22,7 @@ class Anuncio {
     required this.longitude,
     required this.marketName,
     required this.marketAddress,
+    required this.active
   });
 
   factory Anuncio.fromJson(Map<String, dynamic> json) {
@@ -33,7 +35,8 @@ class Anuncio {
       latitude: json['market']?['location']?['latitude'].toDouble(),
       longitude: json['market']?['location']?['longitude']?.toDouble(),
       marketName: json['market']?['name'],
-      marketAddress: json['market']?['location']?['address']
+      marketAddress: json['market']?['location']?['address'],
+      active: json['active'],
     );
   }
 

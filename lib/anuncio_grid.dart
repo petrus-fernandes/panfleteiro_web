@@ -55,103 +55,101 @@ class AnuncioGrid extends StatelessWidget {
           onTap: () => _showAnuncioModal(context, anuncio),
           child: Card(
             elevation: 1,
-            shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             color: !anuncio.active ? Colors.grey[300] : null, // Cor de fundo acinzentada para desativados
             child: Container(
-            height: fixedHeight,
-            padding: EdgeInsets.all(isMobile ? 12.0 : 20.0),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              gradient: !anuncio.active ? null : LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: !anuncio.active
-                    ? [Colors.grey[400]!, Colors.grey[300]!] // Gradiente cinza para desativados
-                    : [
-                  Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-                  Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.2),
-                ],
+              height: fixedHeight,
+              padding: EdgeInsets.all(isMobile ? 12.0 : 20.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                gradient: !anuncio.active ? null : LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: !anuncio.active
+                      ? [Colors.grey[400]!, Colors.grey[300]!] // Gradiente cinza para desativados
+                      : [
+                    Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+                    Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.2),
+                  ],
+                ),
+                color: !anuncio.active ? Colors.grey[300] : null, // Cor de fundo adicional
               ),
-              color: !anuncio.active ? Colors.grey[300] : null, // Cor de fundo adicional
-            ),
-            child: Opacity(
-              opacity: !anuncio.active ? 0.6 : 1.0, // Reduz a opacidade para desativados
-              child: Stack(
-                children: [
-                  // Nome do produto
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    right: 8,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.05), // Fundo sutil
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        anuncio.nome,
-                        style: TextStyle(
-                          fontSize: isMobile ? 20 : 32,
-                          fontWeight: FontWeight.w700,
-                          color: Theme.of(context).colorScheme.onSurface,
-                          letterSpacing: -0.3,
-                          height: 1.1,
+              child: Opacity(
+                opacity: !anuncio.active ? 0.6 : 1.0, // Reduz a opacidade para desativados
+                child: Stack(
+                  children: [
+                    // Nome do produto
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      right: 8,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.05), // Fundo sutil
+                          borderRadius: BorderRadius.circular(4),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
+                        child: Text(
+                          anuncio.nome,
+                          style: TextStyle(
+                            fontSize: isMobile ? 20 : 32,
+                            fontWeight: FontWeight.w700,
+                            color: Theme.of(context).colorScheme.onSurface,
+                            letterSpacing: -0.3,
+                            height: 1.1,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ),
-                  ),
-                  // Preço no canto inferior esquerdo
-                  Positioned(
-                    bottom: 8,
-                    right: 8,
-                    child: Text(
-                      formatter.format(anuncio.preco),
-                      style: TextStyle(
-                        fontSize: isMobile ? 30 : 50, // Fonte menor no mobile
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red,
+                    // Preço no canto inferior esquerdo
+                    Positioned(
+                      bottom: 8,
+                      right: 8,
+                      child: Text(
+                        formatter.format(anuncio.preco),
+                        style: TextStyle(
+                          fontSize: isMobile ? 30 : 50, // Fonte menor no mobile
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
+                        ),
                       ),
                     ),
-                  ),
-                  // Validade e distância no canto inferior direito
-                  Positioned(
-                    bottom: 8,
-                    left: 8,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (anuncio.dataValidade != null)
-                          _buildInfoChip(
-                            context,
-                            icon: Icons.calendar_today,
-                            text: DateFormat('dd/MM/yy').format(anuncio.dataValidade!),
-                            isMobile: isMobile,
-                            color: Colors.red.shade100,
-                            anuncio: anuncio
-                          ),
-                        if (anuncio.distancia != null)
-                          _buildInfoChip(
-                            context,
-                            icon: MyFlutterApp.marker,
-                            text: anuncio.distanciaText(),
-                            isMobile: isMobile,
-                            color: null,
-                            anuncio: anuncio
-                          ),
-                      ],
+                    // Validade e distância no canto inferior direito
+                    Positioned(
+                      bottom: 8,
+                      left: 8,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (anuncio.dataValidade != null)
+                            _buildInfoChip(
+                              context,
+                              icon: Icons.calendar_today,
+                              text: DateFormat('dd/MM/yy').format(anuncio.dataValidade!),
+                              isMobile: isMobile,
+                              color: Colors.red.shade100,
+                              anuncio: anuncio
+                            ),
+                          if (anuncio.distancia != null)
+                            _buildInfoChip(
+                              context,
+                              icon: MyFlutterApp.marker,
+                              text: anuncio.distanciaText(),
+                              isMobile: isMobile,
+                              color: null,
+                              anuncio: anuncio
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        )
+          )
         );
       },
     );

@@ -4,6 +4,8 @@ import 'anuncio_service.dart';
 import 'anuncio_list.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'login_page.dart';
+
 Future<void> main() async {
   await dotenv.load(fileName: ".env");
   runApp(
@@ -27,9 +29,11 @@ class MyApp extends StatelessWidget {
           brightness: Brightness.light,
         ),
       ),
-      home: AnuncioList(),
+      debugShowCheckedModeBanner: false,
+      initialRoute: '/main',
       routes: {
         '/main': (context) => AnuncioList(),
+        '/login': (context) => LoginPage(),
       },
     );
   }

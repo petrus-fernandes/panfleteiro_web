@@ -273,23 +273,21 @@ class _AnuncioListState extends State<AnuncioList> {
   appBar() {
     return AppBar(
       title: Row(
-        mainAxisSize: MainAxisSize.min, // Impede que o Row ocupe toda a largura
-        mainAxisAlignment: MainAxisAlignment.center, // Centraliza o grupo (imagem + texto)
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Imagem (clicável e alinhada à esquerda do texto)
           GestureDetector(
             onTap: () {
               Navigator.of(context).pushReplacementNamed('/main');
             },
             child: Image.asset(
               'assets/logo.png',
-              height: 65, // Ajuste conforme necessário
+              height: 65,
             ),
           ),
-          SizedBox(width: 8), // Espaço entre a imagem e o texto
-          // Texto "Mercadão" (com ajuste vertical)
+          SizedBox(width: 8),
           Padding(
-            padding: EdgeInsets.only(top: 6.0), // Ajuste vertical (4px para baixo)
+            padding: EdgeInsets.only(top: 6.0),
             child: Text(
               'Mercadão',
               style: TextStyle(
@@ -301,10 +299,26 @@ class _AnuncioListState extends State<AnuncioList> {
           ),
         ],
       ),
-      centerTitle: true, // Centraliza o Row no AppBar
+      centerTitle: true,
       elevation: 0,
       scrolledUnderElevation: 1,
       surfaceTintColor: Theme.of(context).colorScheme.surface,
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 12.0),
+          child: TextButton.icon(
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.primary,
+            ),
+            onPressed: () {
+              Navigator.of(context).pushNamed('/login'); // rota da sua tela de login
+            },
+            icon: Icon(Icons.login),
+            label: Text('Login'),
+          ),
+        ),
+      ],
     );
   }
+
 }

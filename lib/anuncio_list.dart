@@ -47,11 +47,10 @@ class _AnuncioListState extends State<AnuncioList> {
         _page = 0;
         _anuncios.clear();
         _isSearchActive = true;
-        _hasMore = true; // Resetar quando for uma nova busca
+        _hasMore = true;
       });
     }
 
-    // Se não há mais itens ou está carregando, não faz nada
     if (!_hasMore || _isLoading) return;
 
     setState(() {
@@ -78,7 +77,7 @@ class _AnuncioListState extends State<AnuncioList> {
         _anuncios.addAll(newAnuncios);
         _page++;
         // Se vier menos itens que o tamanho da página, não há mais itens
-        _hasMore = newAnuncios.length >= _size;
+        _hasMore = _hasMoreAds(newAnuncios);
       });
     } catch (e) {
       print('Erro ao carregar anúncios: $e');
@@ -89,12 +88,27 @@ class _AnuncioListState extends State<AnuncioList> {
     }
   }
 
+  bool _hasMoreAds(List<Anuncio> newAnuncios) => newAnuncios.length >= _size;
+
   Future<void> _getUserLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       throw 'Location services are disabled.';
     }
 
+    await validateGeolocatorPermission();
+
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.bestForNavigation
+    );
+
+    setState(() {
+      _latitude = position.latitude;
+      _longitude = position.longitude;
+    });
+  }
+
+  Future<void> validateGeolocatorPermission() async {
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
@@ -106,19 +120,6 @@ class _AnuncioListState extends State<AnuncioList> {
     if (permission == LocationPermission.deniedForever) {
       throw 'Location permissions are permanently denied, we cannot request permissions.';
     }
-
-    const LocationSettings locationSettings = LocationSettings(
-      accuracy: LocationAccuracy.bestForNavigation,
-      distanceFilter: 10,
-    );
-
-    Position position = await Geolocator.getCurrentPosition(
-      locationSettings: locationSettings,
-    );
-    setState(() {
-      _latitude = position.latitude;
-      _longitude = position.longitude;
-    });
   }
 
   @override
@@ -209,7 +210,9 @@ class _AnuncioListState extends State<AnuncioList> {
               },
             ),
           ),
+
           SizedBox(height: 50),
+
           Expanded(
             child: Padding(
               padding: gridPadding,
@@ -311,7 +314,7 @@ class _AnuncioListState extends State<AnuncioList> {
               foregroundColor: Theme.of(context).colorScheme.primary,
             ),
             onPressed: () {
-              Navigator.of(context).pushNamed('/login'); // rota da sua tela de login
+              Navigator.of(context).pushNamed('/login');
             },
             icon: Icon(Icons.login),
             label: Text('Login'),

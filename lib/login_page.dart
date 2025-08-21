@@ -33,28 +33,20 @@ class _LoginPageState extends State<LoginPage> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('access_token', token);
 
-        // DEBUG: ver em qual rota estamos antes de navegar
-        print('Login ok — rota atual: ${ModalRoute.of(context)?.settings.name}');
-
         if (!mounted) return;
 
-        // Navega para /main e remove toda pilha anterior
-        Navigator.of(context).pushNamedAndRemoveUntil('/main', (route) => false);
+        Navigator.of(context).pushNamedAndRemoveUntil('/validacao', (route) => false);
 
-        // Se o Navigator estiver aninhado e isso não funcionar, tente:
-        // Navigator.of(context, rootNavigator: true)
-        //     .pushNamedAndRemoveUntil('/main', (route) => false);
       } else {
-        final msg = 'Login falhou: ${response.statusCode}';
-        print(msg);
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Login falhou. Verifique suas credenciais.')),
           );
         }
       }
-    } catch (e, st) {
-      print('Erro no login: $e\n$st');
+    } catch (e) {
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erro ao conectar: $e')),

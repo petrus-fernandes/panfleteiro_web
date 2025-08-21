@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:panfleteiro_web/validacao_page.dart';
 import 'package:provider/provider.dart';
 import 'anuncio_service.dart';
 import 'anuncio_list.dart';
@@ -34,6 +35,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/main': (context) => AnuncioList(),
         '/login': (context) => LoginPage(),
+        '/validacao': (context) => ValidacaoPage(),
       },
     );
   }

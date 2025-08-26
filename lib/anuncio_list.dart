@@ -40,27 +40,44 @@ class _AnuncioListState extends State<AnuncioList> {
   final ScrollController _scrollController = ScrollController();
   bool _hasMore = true;
   final _Debouncer _scrollDebouncer = _Debouncer(milliseconds: 500);
+  bool _locationAllowed = false;
+
+  Future<void> _initializePage() async {
+    try {
+      await _getUserLocation();
+      setState(() {
+        _locationAllowed = true;
+        _isSearchActive = true;
+      });
+    } catch (e) {
+      print("Localização não disponível: $e");
+      setState(() {
+        _locationAllowed = false;
+        _isSearchActive = false;
+      });
+    }
+
+    await _loadAnuncios();
+  }
 
   Future<void> _loadAnuncios({bool isNewSearch = false}) async {
     if (isNewSearch) {
       setState(() {
         _page = 0;
         _anuncios.clear();
-        _isSearchActive = true;
         _hasMore = true;
+        _isSearchActive = _locationAllowed;
       });
     }
 
     if (!_hasMore || _isLoading) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
       List<Anuncio> newAnuncios;
-      if (_isSearchActive) {
-        await _getUserLocation();
+
+      if (_isSearchActive && _locationAllowed) {
         newAnuncios = await Provider.of<AnuncioService>(
           context,
           listen: false,
@@ -76,30 +93,23 @@ class _AnuncioListState extends State<AnuncioList> {
       setState(() {
         _anuncios.addAll(newAnuncios);
         _page++;
-        // Se vier menos itens que o tamanho da página, não há mais itens
-        _hasMore = _hasMoreAds(newAnuncios);
+        _hasMore = newAnuncios.length >= _size;
       });
     } catch (e) {
       print('Erro ao carregar anúncios: $e');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
-  bool _hasMoreAds(List<Anuncio> newAnuncios) => newAnuncios.length >= _size;
-
   Future<void> _getUserLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      throw 'Location services are disabled.';
-    }
+    if (!serviceEnabled) throw 'Serviço de localização desativado';
 
     await validateGeolocatorPermission();
 
     Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.bestForNavigation
+      desiredAccuracy: LocationAccuracy.bestForNavigation,
     );
 
     setState(() {
@@ -113,12 +123,11 @@ class _AnuncioListState extends State<AnuncioList> {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        throw 'Location permissions are denied';
+        throw 'Permissão de localização negada';
       }
     }
-
     if (permission == LocationPermission.deniedForever) {
-      throw 'Location permissions are permanently denied, we cannot request permissions.';
+      throw 'Permissão de localização permanentemente negada';
     }
   }
 
@@ -126,7 +135,16 @@ class _AnuncioListState extends State<AnuncioList> {
   void initState() {
     super.initState();
     _scrollController.addListener(_scrollListener);
-    _loadAnuncios();
+    _initializePage();
+  }
+
+
+  Future<void> _initializeLocation() async {
+    try {
+      await _getUserLocation();
+    } catch (e) {
+      print("Erro ao obter localização inicial: $e");
+    }
   }
 
   @override
@@ -205,7 +223,25 @@ class _AnuncioListState extends State<AnuncioList> {
               onChanged: (value) {
                 _searchTerm = value;
               },
-              onSubmitted: (value) {
+              onSubmitted: (value) async {
+                _searchTerm = value;
+
+                if (!_locationAllowed) {
+                  try {
+                    await _getUserLocation();
+                    setState(() {
+                      _locationAllowed = true;
+                      _isSearchActive = true;
+                    });
+                  } catch (e) {
+                    print("Usuário não permitiu localização na busca: $e");
+                    setState(() {
+                      _locationAllowed = false;
+                      _isSearchActive = false;
+                    });
+                  }
+                }
+
                 _loadAnuncios(isNewSearch: true);
               },
             ),

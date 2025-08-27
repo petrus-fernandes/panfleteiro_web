@@ -90,7 +90,7 @@ class AnuncioGrid extends StatelessWidget {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          anuncio.nome,
+                          anuncio.name,
                           style: TextStyle(
                             fontSize: isMobile ? 20 : 32,
                             fontWeight: FontWeight.w700,
@@ -109,7 +109,7 @@ class AnuncioGrid extends StatelessWidget {
                       bottom: 8,
                       right: 8,
                       child: Text(
-                        formatter.format(anuncio.preco),
+                        formatter.format(anuncio.price),
                         style: TextStyle(
                           fontSize: isMobile ? 30 : 50, // Fonte menor no mobile
                           fontWeight: FontWeight.bold,
@@ -124,16 +124,16 @@ class AnuncioGrid extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (anuncio.dataValidade != null)
+                          if (anuncio.expirationDate != null)
                             _buildInfoChip(
                               context,
                               icon: Icons.calendar_today,
-                              text: DateFormat('dd/MM/yy').format(anuncio.dataValidade!),
+                              text: DateFormat('dd/MM/yy').format(anuncio.expirationDate!),
                               isMobile: isMobile,
                               color: Colors.red.shade100,
                               anuncio: anuncio
                             ),
-                          if (anuncio.distancia != null)
+                          if (anuncio.distance != null)
                             _buildInfoChip(
                               context,
                               icon: MyFlutterApp.marker,
@@ -278,7 +278,7 @@ class AnuncioModal extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      anuncio.nome,
+                      anuncio.name,
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w900,
                         color: Colors.black,
@@ -322,7 +322,7 @@ class AnuncioModal extends StatelessWidget {
                                 NumberFormat.currency(
                                   locale: "pt-BR",
                                   symbol: "R\$ ",
-                                ).format(anuncio.preco),
+                                ).format(anuncio.price),
                                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.red.shade600,
@@ -337,12 +337,12 @@ class AnuncioModal extends StatelessWidget {
                           SizedBox(height: 12),
 
                           // Demais informações
-                          if (anuncio.dataValidade != null) ...[
+                          if (anuncio.expirationDate != null) ...[
                             _buildInfoRow(context, Icons.calendar_today,
-                                'Válido até: ${DateFormat('dd/MM/yyyy').format(anuncio.dataValidade!)}'),
+                                'Válido até: ${DateFormat('dd/MM/yyyy').format(anuncio.expirationDate!)}'),
                             SizedBox(height: 8),
                           ],
-                          if (anuncio.distancia != null) ...[
+                          if (anuncio.distance != null) ...[
                             _buildInfoRow(context, Icons.location_on,
                                 'Distância: ${anuncio.distanciaText()}'),
                             SizedBox(height: 8),
@@ -379,7 +379,7 @@ class AnuncioModal extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       child: AspectRatio(
                         aspectRatio: 16 / 9, // Proporção widescreen (16:9)
-                        child: anuncio.latitude != null && anuncio.longitude != null
+                        child: anuncio.markets[0].location?.latitude != null && anuncio.markets[0].location?.longitude != null
                             ? GestureDetector(
                           onTap: _openGoogleMaps,
                           child: LayoutBuilder(

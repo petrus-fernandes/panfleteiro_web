@@ -1,68 +1,73 @@
 import 'package:intl/intl.dart';
 
+import 'market.dart';
+
 class Anuncio {
-  final String nome;
-  final double preco;
-  final DateTime? dataValidade;
-  final double? distancia;
+  final String name;
+  final double price;
+  final DateTime? expirationDate;
+  final double? distance;
   final String? link;
+  final bool active;
+  final List<Market> markets;
   final double? latitude;
   final double? longitude;
   final String? marketName;
   final String? marketAddress;
-  final bool active;
 
   Anuncio({
-    required this.nome,
-    required this.preco,
-    required this.dataValidade,
-    required this.distancia,
+    required this.name,
+    required this.price,
+    required this.expirationDate,
+    required this.distance,
     required this.link,
+    required this.active,
+    required this.markets,
     required this.latitude,
     required this.longitude,
     required this.marketName,
     required this.marketAddress,
-    required this.active
   });
 
   factory Anuncio.fromJson(Map<String, dynamic> json) {
     return Anuncio(
-      nome: json['productName'],
-      preco: json['price']?.toDouble(),
-      dataValidade: json['expirationDate'] != null ? _parseDate(json['expirationDate']) : null,
-      distancia: json['distance']?.toDouble(),
+      name: json['productName'],
+      price: json['price']?.toDouble(),
+      expirationDate: json['expirationDate'] != null ? _parseDate(json['expirationDate']) : null,
+      distance: json['markets']?.first['distance']?.toDouble(),
       link: json['url'],
-      latitude: json['market']?['location']?['latitude'].toDouble(),
-      longitude: json['market']?['location']?['longitude']?.toDouble(),
-      marketName: json['market']?['name'],
-      marketAddress: json['market']?['location']?['address'],
       active: json['active'],
+      markets: json['markets'] != null ? (json['markets'] as List).map((m) => Market.fromJson(m)).toList() : [],
+      latitude: json['markets']?.first['location']?['latitude'].toDouble(),
+      longitude: json['markets']?.first['location']?['longitude'].toDouble(),
+      marketName: json['markets']?.first['name'],
+      marketAddress: json['markets']?.first['location']?['address'],
     );
   }
 
   static DateTime _parseDate(String dateString) {
-    final parts = dateString.split('-'); // Divide a string em partes
+    final parts = dateString.split('-');
     if (parts.length == 3) {
       final day = int.parse(parts[0]);
       final month = int.parse(parts[1]);
       final year = int.parse(parts[2]);
-      return DateTime(year, month, day); // Cria um objeto DateTime
+      return DateTime(year, month, day);
     } else {
       throw FormatException('Formato de data inválido: $dateString');
     }
   }
 
   String distanciaText() {
-    if (distancia == null) {
+    if (distance == null) {
       return '';
     }
 
-    if (distancia! < 1) {
-      String? distanceBasicFormat = distancia?.toStringAsFixed(3);
+    if (distance! < 1) {
+      String? distanceBasicFormat = distance?.toStringAsFixed(3);
       double distanceBasicFormatDouble = double.parse(distanceBasicFormat!);
       return '${distanceBasicFormatDouble * 1000} m';
     }
-    return '${_roundMetricScale(distancia)} km';
+    return '${_roundMetricScale(distance)} km';
   }
 
   static String _roundMetricScale(distance) {

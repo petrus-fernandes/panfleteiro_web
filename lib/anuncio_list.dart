@@ -138,15 +138,6 @@ class _AnuncioListState extends State<AnuncioList> {
     _initializePage();
   }
 
-
-  Future<void> _initializeLocation() async {
-    try {
-      await _getUserLocation();
-    } catch (e) {
-      print("Erro ao obter localização inicial: $e");
-    }
-  }
-
   @override
   void dispose() {
     _scrollController.removeListener(_scrollListener);

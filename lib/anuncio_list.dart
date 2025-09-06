@@ -1,9 +1,8 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'anuncio_grid.dart';
 import 'anuncio_service.dart';
 import 'anuncio.dart';
@@ -41,6 +40,36 @@ class _AnuncioListState extends State<AnuncioList> {
   bool _hasMore = true;
   final _Debouncer _scrollDebouncer = _Debouncer(milliseconds: 500);
   bool _locationAllowed = false;
+  bool _acceptedTerms = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_scrollListener);
+    _checkAcceptedTerms();
+  }
+
+  Future<void> _checkAcceptedTerms() async {
+    final prefs = await SharedPreferences.getInstance();
+    final accepted = prefs.getBool('acceptedTerms') ?? false;
+
+    setState(() {
+      _acceptedTerms = accepted;
+    });
+
+    if (!accepted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showTermsDialog();
+      });
+    } else {
+      _initializePage();
+    }
+  }
+
+  Future<void> _saveAcceptedTerms() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('acceptedTerms', true);
+  }
 
   Future<void> _initializePage() async {
     try {
@@ -131,20 +160,6 @@ class _AnuncioListState extends State<AnuncioList> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_scrollListener);
-    _initializePage();
-  }
-
-  @override
-  void dispose() {
-    _scrollController.removeListener(_scrollListener);
-    _scrollController.dispose();
-    super.dispose();
-  }
-
   void _scrollListener() {
     _scrollDebouncer.run(() {
       if (_scrollController.position.pixels >
@@ -156,8 +171,164 @@ class _AnuncioListState extends State<AnuncioList> {
     });
   }
 
+  void _showTermsDialog() {
+    bool tempAccepted = false;
+    const String termoFormal = """
+      TERMO DE CONSCIENTIZAÇÃO E ISENÇÃO DE RESPONSABILIDADE
+      
+      Ao utilizar esta aplicação, o USUÁRIO declara que está ciente e de acordo com as condições abaixo:
+      
+      1. ORIGEM DAS INFORMAÇÕES
+      Todas as ofertas, preços, promoções, produtos e demais informações disponibilizadas nesta plataforma são de responsabilidade exclusiva dos ESTABELECIMENTOS ANUNCIANTES. Esta aplicação atua unicamente como ferramenta de divulgação, não sendo autora, editora ou responsável pelo conteúdo veiculado nos panfletos ou anúncios exibidos.
+      
+      2. POSSÍVEIS DIVERGÊNCIAS
+      As informações apresentadas podem conter erros de digitação, falhas de atualização ou divergências em relação às condições praticadas pelos estabelecimentos. Em caso de dúvida, recomenda-se que o usuário sempre confirme as informações diretamente com o ESTABELECIMENTO ANUNCIANTE antes de efetivar qualquer compra.
+      
+      3. LIMITAÇÃO DE RESPONSABILIDADE
+      Esta aplicação não se responsabiliza, em hipótese alguma, por prejuízos, danos ou perdas de qualquer natureza decorrentes da utilização das informações divulgadas, sejam eles diretos ou indiretos. Cabe exclusivamente ao USUÁRIO verificar a veracidade, disponibilidade e condições das ofertas apresentadas.
+      
+      4. ACEITAÇÃO
+      Ao prosseguir com o uso desta aplicação, o USUÁRIO declara que leu, compreendeu e aceitou integralmente este termo, isentando a plataforma e seu responsável legal de qualquer responsabilidade sobre o conteúdo dos anúncios divulgados.
+    """;
+
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: Text(
+                "Termo de Conscientização",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red[800],
+                ),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 6,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: termoFormalWidget(),
+                    ),
+                    SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: tempAccepted,
+                          onChanged: (value) {
+                            setStateDialog(() {
+                              tempAccepted = value ?? false;
+                            });
+                            if (value == true) {
+                              setState(() {
+                                _acceptedTerms = true;
+                              });
+                              _saveAcceptedTerms();
+                              Navigator.of(context).pop();
+                              _initializePage();
+                            }
+                          },
+                        ),
+                        Expanded(
+                          child: Text(
+                            "Li e aceito os termos",
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget termoFormalWidget() {
+    return SelectableText.rich(
+      TextSpan(
+        style: TextStyle(fontSize: 15, height: 1.4, color: Colors.black87),
+        children: [
+          TextSpan(
+            text: "TERMO DE CONSCIENTIZAÇÃO E ISENÇÃO DE RESPONSABILIDADE\n\n",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          TextSpan(
+            text: "Ao utilizar esta aplicação, o USUÁRIO declara que está ciente e de acordo com as condições abaixo:\n\n",
+          ),
+          TextSpan(
+            text: "1. ORIGEM DAS INFORMAÇÕES\n",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          TextSpan(
+            text:
+            "Todas as ofertas, preços, promoções, produtos e demais informações disponibilizadas nesta plataforma são de responsabilidade exclusiva dos ESTABELECIMENTOS ANUNCIANTES. Esta aplicação atua unicamente como ferramenta de divulgação, não sendo autora, editora ou responsável pelo conteúdo veiculado nos panfletos ou anúncios exibidos.\n\n",
+          ),
+          TextSpan(
+            text: "2. POSSÍVEIS DIVERGÊNCIAS\n",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          TextSpan(
+            text:
+            "As informações apresentadas podem conter erros de digitação, falhas de atualização ou divergências em relação às condições praticadas pelos estabelecimentos. Em caso de dúvida, recomenda-se que o usuário sempre confirme as informações diretamente com o ESTABELECIMENTO ANUNCIANTE antes de efetivar qualquer compra.\n\n",
+          ),
+          TextSpan(
+            text: "3. LIMITAÇÃO DE RESPONSABILIDADE\n",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          TextSpan(
+            text:
+            "Esta aplicação não se responsabiliza, em hipótese alguma, por prejuízos, danos ou perdas de qualquer natureza decorrentes da utilização das informações divulgadas, sejam eles diretos ou indiretos. Cabe exclusivamente ao USUÁRIO verificar a veracidade, disponibilidade e condições das ofertas apresentadas.\n\n",
+          ),
+          TextSpan(
+            text: "4. ACEITAÇÃO\n",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          TextSpan(
+            text:
+            "Ao prosseguir com o uso desta aplicação, o USUÁRIO declara que leu, compreendeu e aceitou integralmente este termo, isentando a plataforma e seu responsável legal de qualquer responsabilidade sobre o conteúdo dos anúncios divulgados.",
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!_acceptedTerms) {
+      return Scaffold(
+        appBar: appBar(),
+        body: Center(
+          child: Text("É necessário aceitar os termos para continuar"),
+        ),
+      );
+    }
+
     final screenWidth = MediaQuery.of(context).size.width;
 
     const double webBreakpoint = 1350;
@@ -165,17 +336,15 @@ class _AnuncioListState extends State<AnuncioList> {
 
     int crossAxisCount;
     if (screenWidth > webBreakpoint) {
-      crossAxisCount = 3; // Web: 3 colunas
+      crossAxisCount = 3;
     } else if (screenWidth > tabletBreakpoint) {
-      crossAxisCount = 2; // Tablet: 2 colunas
+      crossAxisCount = 2;
     } else {
-      crossAxisCount = 1; // Mobile: 1 coluna
+      crossAxisCount = 1;
     }
 
-    // Define a altura fixa dos cards
     final fixedHeight = screenWidth > tabletBreakpoint ? 250.0 : 150.0;
 
-    // Define o gridPadding com base no dispositivo
     EdgeInsets gridPadding;
     if (screenWidth > webBreakpoint) {
       gridPadding = EdgeInsets.symmetric(horizontal: 120.0);
@@ -185,12 +354,12 @@ class _AnuncioListState extends State<AnuncioList> {
       gridPadding = EdgeInsets.only(left: 15.0, right: 15.0);
     }
 
-    //
     EdgeInsets textFieldPadding;
     if (screenWidth > tabletBreakpoint) {
-      textFieldPadding = EdgeInsets.only(left: 40.0, right: 40.0, top: 40.0); // Web/Tablet
+      textFieldPadding =
+          EdgeInsets.only(left: 40.0, right: 40.0, top: 40.0);
     } else {
-      textFieldPadding = EdgeInsets.only(left: 5.0, right: 5.0, top: 40.0); // Mobile
+      textFieldPadding = EdgeInsets.only(left: 5.0, right: 5.0, top: 40.0);
     }
 
     return Scaffold(
@@ -201,9 +370,6 @@ class _AnuncioListState extends State<AnuncioList> {
             margin: textFieldPadding,
             child: SearchBar(
               hintText: 'Digite o nome do produto',
-              hintStyle: MaterialStateProperty.all(
-                TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-              ),
               leading: Icon(Icons.search),
               elevation: MaterialStateProperty.all(1),
               shape: MaterialStateProperty.all(
@@ -237,9 +403,7 @@ class _AnuncioListState extends State<AnuncioList> {
               },
             ),
           ),
-
           SizedBox(height: 50),
-
           Expanded(
             child: Padding(
               padding: gridPadding,
@@ -337,9 +501,6 @@ class _AnuncioListState extends State<AnuncioList> {
         Padding(
           padding: const EdgeInsets.only(right: 12.0),
           child: TextButton.icon(
-            style: TextButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.primary,
-            ),
             onPressed: () {
               Navigator.of(context).pushNamed('/login');
             },
@@ -350,5 +511,4 @@ class _AnuncioListState extends State<AnuncioList> {
       ],
     );
   }
-
 }

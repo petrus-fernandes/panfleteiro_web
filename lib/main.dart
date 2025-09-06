@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'anuncio_service.dart';
 import 'anuncio_list.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
 import 'login_page.dart';
 
 Future<void> main() async {

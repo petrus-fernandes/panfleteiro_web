@@ -41,6 +41,9 @@ class _AnuncioListState extends State<AnuncioList> {
   final _Debouncer _scrollDebouncer = _Debouncer(milliseconds: 500);
   bool _locationAllowed = false;
   bool _acceptedTerms = false;
+  static const String termVersion = "1.0";
+  static const int termDays = 15;
+
 
   @override
   void initState() {
@@ -52,12 +55,25 @@ class _AnuncioListState extends State<AnuncioList> {
   Future<void> _checkAcceptedTerms() async {
     final prefs = await SharedPreferences.getInstance();
     final accepted = prefs.getBool('acceptedTerms') ?? false;
+    final acceptedDateStr = prefs.getString('acceptedTermsDate');
+    final acceptedVersion = prefs.getString('acceptedTermsVersion') ?? "";
+
+    bool isValid = false;
+
+    if (accepted && acceptedDateStr != null) {
+      final acceptedDate = DateTime.tryParse(acceptedDateStr);
+      if (acceptedDate != null) {
+        final difference = DateTime.now().difference(acceptedDate).inDays;
+
+        isValid = difference < termDays && acceptedVersion == termVersion;
+      }
+    }
 
     setState(() {
-      _acceptedTerms = accepted;
+      _acceptedTerms = isValid;
     });
 
-    if (!accepted) {
+    if (!isValid) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _showTermsDialog();
       });
@@ -66,10 +82,14 @@ class _AnuncioListState extends State<AnuncioList> {
     }
   }
 
+
   Future<void> _saveAcceptedTerms() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('acceptedTerms', true);
+    await prefs.setString('acceptedTermsDate', DateTime.now().toIso8601String());
+    await prefs.setString('acceptedTermsVersion', termVersion);
   }
+
 
   Future<void> _initializePage() async {
     try {

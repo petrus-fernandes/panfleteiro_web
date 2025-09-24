@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:panfleteiro_web/validacao_page.dart';
+import 'package:panfleteiro_web/screens/validacao_screen.dart';
 import 'package:provider/provider.dart';
-import 'anuncio_service.dart';
-import 'anuncio_list.dart';
+import 'services/anuncio_service.dart';
+import 'screens/anuncio_main_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'login_page.dart';
+import 'screens/login_screen.dart';
 
 Future<void> main() async {
   await dotenv.load(fileName: ".env");
@@ -32,9 +32,9 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialRoute: '/main',
       routes: {
-        '/main': (context) => AnuncioList(),
-        '/login': (context) => LoginPage(),
-        '/validacao': (context) => ValidacaoPage(),
+        '/main': (context) => AnuncioMainScreen(),
+        '/login': (context) => LoginScreen(),
+        '/validacao': (context) => ValidacaoScreen(),
       },
     );
   }

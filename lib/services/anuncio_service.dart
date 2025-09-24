@@ -1,7 +1,7 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'anuncio.dart';
+import '../models/anuncio.dart';
 
 class AnuncioService {
   final String baseUrl = dotenv.env['API_BASE_URL']!;

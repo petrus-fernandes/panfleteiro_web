@@ -3,8 +3,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'anuncio.dart';
-import 'my_flutter_app_icons.dart';
+import '../models/anuncio.dart';
+import '../theme/my_flutter_app_icons.dart';
 
 class AnuncioGrid extends StatelessWidget {
   final List<Anuncio> anuncios;

@@ -4,19 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:monaco_editor/monaco_editor.dart';
-import 'package:panfleteiro_web/imagem_interativa.dart';
+import 'package:panfleteiro_web/widgets/imagem_interativa.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'bar_utils.dart';
-import 'validacao.dart';
+import '../utils/bar_utils.dart';
+import '../models/validacao.dart';
 
-class ValidacaoPage extends StatefulWidget {
-  const ValidacaoPage({super.key});
+class ValidacaoScreen extends StatefulWidget {
+  const ValidacaoScreen({super.key});
 
   @override
-  State<ValidacaoPage> createState() => _ValidacaoPageState();
+  State<ValidacaoScreen> createState() => _ValidacaoScreenState();
 }
 
-class _ValidacaoPageState extends State<ValidacaoPage> {
+class _ValidacaoScreenState extends State<ValidacaoScreen> {
   Validacao? _validacao;
   bool _carregando = false;
 

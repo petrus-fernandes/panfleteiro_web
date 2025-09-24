@@ -18,8 +18,8 @@ class AnuncioService {
     }
   }
 
-  fetchAnunciosPorLocalizacao(double latitude, double longitude, String searchTerm, int page, int size) async {
-    final response = await http.get(Uri.parse('$baseUrl/v1/anuncios/buscaPorDistanciaENome?longitude=$longitude&latitude=$latitude&rangeInKm=15&page=$page&size=$size&productName=$searchTerm'));
+  fetchAnunciosPorLocalizacao(double latitude, double longitude, String searchTerm, int page, int size, int distance) async {
+    final response = await http.get(Uri.parse('$baseUrl/v1/anuncios/buscaPorDistanciaENome?longitude=$longitude&latitude=$latitude&rangeInKm=$distance&page=$page&size=$size&productName=$searchTerm'));
 
     if (response.statusCode == 200) {
       List<dynamic> body = jsonDecode(response.body)['content'];

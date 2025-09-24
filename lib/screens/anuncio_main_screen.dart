@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/anuncio_app_bar.dart';
+import '../widgets/distance_selector_widget.dart';
 import '../widgets/search_bar_widget.dart';
 import '../widgets/termos_dialog.dart';
 import '../utils/debouncer.dart';
@@ -32,6 +33,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
   final Debouncer _scrollDebouncer = Debouncer(milliseconds: 500);
   bool _locationAllowed = false;
   bool _acceptedTerms = false;
+  int _selectedDistanceKm = 5;
 
   @override
   void initState() {
@@ -127,7 +129,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
           context,
           listen: false,
         ).fetchAnunciosPorLocalizacao(
-            _latitude, _longitude, _searchTerm, _page, _size);
+            _latitude, _longitude, _searchTerm, _page, _size, _selectedDistanceKm);
       } else {
         newAnuncios = await Provider.of<AnuncioService>(
           context,
@@ -215,31 +217,51 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
         children: [
           Container(
             margin: textFieldPadding,
-            child: SearchBarWidget(
-              onChanged: (value) => _searchTerm = value,
-              onSubmitted: (value) async {
-                _searchTerm = value;
-                if (!_locationAllowed) {
-                  try {
-                    final location = await LocationService().getUserLocation();
-                    setState(() {
-                      _latitude = location.latitude;
-                      _longitude = location.longitude;
-                      _locationAllowed = true;
-                      _isSearchActive = true;
-                    });
-                  } catch (e) {
-                    debugPrint("Usuário não permitiu localização na busca: $e");
-                    setState(() {
-                      _locationAllowed = false;
-                      _isSearchActive = false;
-                    });
-                  }
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                double maxWidth;
+
+                if (constraints.maxWidth < 600) {
+                  maxWidth = constraints.maxWidth;
+                } else if (constraints.maxWidth < 1200) {
+                  maxWidth = 700;
+                } else {
+                  maxWidth = 900;
                 }
-                _loadAnuncios(isNewSearch: true);
+
+                return Align(
+                  alignment: Alignment.center,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: maxWidth),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: SearchBarWidget(
+                            onChanged: (value) => _searchTerm = value,
+                            onSubmitted: (value) => _loadAnuncios(isNewSearch: true),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        SizedBox(
+                          width: 130,
+                          child: DistanceSelectorWidget(
+                            selectedKm: _selectedDistanceKm,
+                            onChanged: (km) {
+                              setState(() => _selectedDistanceKm = km);
+                              _loadAnuncios(isNewSearch: true);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
               },
             ),
           ),
+
+
+
           const SizedBox(height: 50),
           Expanded(
             child: Padding(
@@ -247,8 +269,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
               child: NotificationListener<ScrollNotification>(
                 onNotification: (scrollNotification) {
                   if (scrollNotification is ScrollUpdateNotification &&
-                      _scrollController.position.pixels >
-                          _scrollController.position.maxScrollExtent - 500 &&
+                      _scrollController.position.pixels > _scrollController.position.maxScrollExtent - 500 &&
                       !_isLoading &&
                       _hasMore) {
                     _loadAnuncios();

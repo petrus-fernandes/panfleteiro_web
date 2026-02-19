@@ -6,11 +6,22 @@ import '../models/anuncio.dart';
 class AnuncioService {
   final String baseUrl = dotenv.env['API_BASE_URL']!;
 
-  Future<List<Anuncio>> fetchAnunciosPorNome(String productName, int page, int size) async {
-    final response = await http.get(Uri.parse('$baseUrl/v1/anuncios/buscaPorNome?productName=$productName&page=$page&size=$size'));
+  Future<List<Anuncio>> fetchAnunciosPorNome(
+    String productName,
+    int page,
+    int size,
+  ) async {
+    final uri = Uri.parse('$baseUrl/v1/anuncios/buscaPorNome').replace(
+      queryParameters: {
+        'productName': productName,
+        'page': page.toString(),
+        'size': size.toString(),
+      },
+    );
+
+    final response = await http.get(uri);
 
     if (response.statusCode == 200) {
-
       List<dynamic> body = jsonDecode(response.body)['content'];
       return body.map((dynamic item) => Anuncio.fromJson(item)).toList();
     } else {
@@ -18,8 +29,32 @@ class AnuncioService {
     }
   }
 
-  fetchAnunciosPorLocalizacao(double latitude, double longitude, String searchTerm, int page, int size, int distance) async {
-    final response = await http.get(Uri.parse('$baseUrl/v1/anuncios/buscaPorDistanciaENome?longitude=$longitude&latitude=$latitude&rangeInKm=$distance&page=$page&size=$size&productName=$searchTerm'));
+  Future<List<Anuncio>> fetchAnunciosPorLocalizacao(
+    double? latitude,
+    double? longitude,
+    String searchTerm,
+    int page,
+    int size,
+    int distance, {
+    String? cep,
+  }) async {
+    final queryParameters = {
+      'longitude': longitude?.toString(),
+      'latitude': latitude?.toString(),
+      'rangeInKm': distance.toString(),
+      'page': page.toString(),
+      'size': size.toString(),
+      'productName': searchTerm,
+    };
+
+    if (cep != null && cep.isNotEmpty) {
+      queryParameters['cep'] = cep;
+    }
+
+    final uri = Uri.parse('$baseUrl/v1/anuncios')
+        .replace(queryParameters: queryParameters);
+
+    final response = await http.get(uri);
 
     if (response.statusCode == 200) {
       List<dynamic> body = jsonDecode(response.body)['content'];

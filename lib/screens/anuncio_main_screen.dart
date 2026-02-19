@@ -25,8 +25,9 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
   List<Anuncio> _anuncios = [];
   bool _isLoading = false;
   String _searchTerm = '';
-  double _latitude = 0.0;
-  double _longitude = 0.0;
+  String _cepFilter = '';
+  double? _latitude;
+  double? _longitude;
   bool _isSearchActive = false;
   final ScrollController _scrollController = ScrollController();
   bool _hasMore = true;
@@ -34,6 +35,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
   bool _locationAllowed = false;
   bool _acceptedTerms = false;
   int _selectedDistanceKm = 5;
+  final TextEditingController _cepController = TextEditingController();
 
   @override
   void initState() {
@@ -129,7 +131,14 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
           context,
           listen: false,
         ).fetchAnunciosPorLocalizacao(
-            _latitude, _longitude, _searchTerm, _page, _size, _selectedDistanceKm);
+            _latitude,
+            _longitude,
+            _searchTerm,
+            _page,
+            _size,
+            _selectedDistanceKm,
+            cep: _cepFilter,
+          );
       } else {
         newAnuncios = await Provider.of<AnuncioService>(
           context,
@@ -164,6 +173,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
   void dispose() {
     _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
+    _cepController.dispose();
     super.dispose();
   }
 
@@ -181,6 +191,8 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     const double webBreakpoint = 1350;
     const double tabletBreakpoint = 800;
+    const double searchSectionMaxWidth = 900;
+    const double searchSectionLeftOffset = -16;
 
     int crossAxisCount;
     if (screenWidth > webBreakpoint) {
@@ -205,10 +217,10 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
     EdgeInsets textFieldPadding;
     if (screenWidth > tabletBreakpoint) {
       textFieldPadding =
-      const EdgeInsets.only(left: 40.0, right: 40.0, top: 40.0);
+          const EdgeInsets.only(left: 40.0, right: 40.0, top: 40.0);
     } else {
       textFieldPadding =
-      const EdgeInsets.only(left: 5.0, right: 5.0, top: 40.0);
+          const EdgeInsets.only(left: 5.0, right: 5.0, top: 40.0);
     }
 
     return Scaffold(
@@ -226,41 +238,95 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                 } else if (constraints.maxWidth < 1200) {
                   maxWidth = 700;
                 } else {
-                  maxWidth = 900;
+                  maxWidth = searchSectionMaxWidth;
                 }
 
                 return Align(
                   alignment: Alignment.center,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: maxWidth),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: SearchBarWidget(
-                            onChanged: (value) => _searchTerm = value,
-                            onSubmitted: (value) => _loadAnuncios(isNewSearch: true),
+                  child: Transform.translate(
+                    offset: const Offset(searchSectionLeftOffset, 0),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: maxWidth),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 140,
+                            child: TextField(
+                              controller: _cepController,
+                              keyboardType: TextInputType.number,
+                              textInputAction: TextInputAction.search,
+                              maxLength: 9,
+                              decoration: InputDecoration(
+                                hintText: 'CEP',
+                                counterText: '',
+                                prefixIcon: const Icon(
+                                  Icons.location_on_outlined,
+                                  size: 20,
+                                ),
+                                filled: true,
+                                fillColor: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHighest
+                                    .withOpacity(0.35),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 10,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: BorderSide(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primary
+                                        .withOpacity(0.35),
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: BorderSide(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primary,
+                                    width: 1.5,
+                                  ),
+                                ),
+                              ),
+                              onSubmitted: (value) {
+                                setState(() {
+                                  _cepFilter = value.trim();
+                                  _locationAllowed = true;
+                                });
+                                _loadAnuncios(isNewSearch: true);
+                              },
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        SizedBox(
-                          width: 130,
-                          child: DistanceSelectorWidget(
-                            selectedKm: _selectedDistanceKm,
-                            onChanged: (km) {
-                              setState(() => _selectedDistanceKm = km);
-                              _loadAnuncios(isNewSearch: true);
-                            },
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: SearchBarWidget(
+                              onChanged: (value) => _searchTerm = value,
+                              onSubmitted: (value) =>
+                                  _loadAnuncios(isNewSearch: true),
+                            ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 16),
+                          SizedBox(
+                            width: 130,
+                            child: DistanceSelectorWidget(
+                              selectedKm: _selectedDistanceKm,
+                              onChanged: (km) {
+                                setState(() => _selectedDistanceKm = km);
+                                _loadAnuncios(isNewSearch: true);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
               },
             ),
           ),
-
-
 
           const SizedBox(height: 50),
           Expanded(
@@ -269,7 +335,8 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
               child: NotificationListener<ScrollNotification>(
                 onNotification: (scrollNotification) {
                   if (scrollNotification is ScrollUpdateNotification &&
-                      _scrollController.position.pixels > _scrollController.position.maxScrollExtent - 500 &&
+                      _scrollController.position.pixels >
+                      _scrollController.position.maxScrollExtent - 500 &&
                       !_isLoading &&
                       _hasMore) {
                     _loadAnuncios();
@@ -289,27 +356,27 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                     SliverToBoxAdapter(
                       child: _isLoading
                           ? const Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      )
+                              padding: EdgeInsets.all(16.0),
+                              child: Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            )
                           : const SizedBox.shrink(),
                     ),
                     SliverToBoxAdapter(
                       child: !_hasMore && _anuncios.isNotEmpty
                           ? const Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Center(
-                          child: Text(
-                            'Todos os itens foram carregados',
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ),
-                      )
+                              padding: EdgeInsets.all(16.0),
+                              child: Center(
+                                child: Text(
+                                  'Todos os itens foram carregados',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ),
+                            )
                           : const SizedBox.shrink(),
                     ),
                   ],

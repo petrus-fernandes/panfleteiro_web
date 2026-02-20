@@ -240,8 +240,11 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                 final isVerySmall = constraints.maxWidth < 520;
 
                 Widget cepField() {
+                  final cepFieldWidth =
+                      constraints.maxWidth < 140 ? constraints.maxWidth : 140.0;
+
                   return SizedBox(
-                    width: isVerySmall ? double.infinity : 140,
+                    width: cepFieldWidth,
                     child: TextField(
                       controller: _cepController,
                       keyboardType: TextInputType.number,

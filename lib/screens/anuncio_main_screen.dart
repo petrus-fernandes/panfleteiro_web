@@ -261,7 +261,6 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                 final compactDistanceWidth =
                     constraints.maxWidth < 460 ? 104.0 : 120.0;
                 final showCepField = _isDesktopWeb || !_locationAllowed;
-                final showDistanceSelector = !_isDesktopWeb && _locationAllowed;
 
                 Widget cepField() {
                   final cepFieldWidth =
@@ -330,7 +329,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                                 cepField(),
                                 const SizedBox(height: 12),
                               ],
-                              if (stackSearchControls && showDistanceSelector)
+                              if (stackSearchControls)
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -362,19 +361,17 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                                             _loadAnuncios(isNewSearch: true),
                                       ),
                                     ),
-                                    if (showDistanceSelector) ...[
-                                      const SizedBox(width: 8),
-                                      SizedBox(
-                                        width: compactDistanceWidth,
-                                        child: DistanceSelectorWidget(
-                                          selectedKm: _selectedDistanceKm,
-                                          onChanged: (km) {
-                                            setState(() => _selectedDistanceKm = km);
-                                            _loadAnuncios(isNewSearch: true);
-                                          },
-                                        ),
+                                    const SizedBox(width: 8),
+                                    SizedBox(
+                                      width: compactDistanceWidth,
+                                      child: DistanceSelectorWidget(
+                                        selectedKm: _selectedDistanceKm,
+                                        onChanged: (km) {
+                                          setState(() => _selectedDistanceKm = km);
+                                          _loadAnuncios(isNewSearch: true);
+                                        },
                                       ),
-                                    ],
+                                    ),
                                   ],
                                 ),
                             ],
@@ -392,19 +389,17 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                                       _loadAnuncios(isNewSearch: true),
                                 ),
                               ),
-                              if (showDistanceSelector) ...[
-                                const SizedBox(width: 16),
-                                SizedBox(
-                                  width: 130,
-                                  child: DistanceSelectorWidget(
-                                    selectedKm: _selectedDistanceKm,
-                                    onChanged: (km) {
-                                      setState(() => _selectedDistanceKm = km);
-                                      _loadAnuncios(isNewSearch: true);
-                                    },
-                                  ),
+                              const SizedBox(width: 16),
+                              SizedBox(
+                                width: 130,
+                                child: DistanceSelectorWidget(
+                                  selectedKm: _selectedDistanceKm,
+                                  onChanged: (km) {
+                                    setState(() => _selectedDistanceKm = km);
+                                    _loadAnuncios(isNewSearch: true);
+                                  },
                                 ),
-                              ],
+                              ),
                             ],
                           ),
                   ),

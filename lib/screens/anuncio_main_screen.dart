@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,6 +21,15 @@ class AnuncioMainScreen extends StatefulWidget {
 }
 
 class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
+
+  bool get _isDesktopWeb {
+    if (!kIsWeb) return false;
+
+    return defaultTargetPlatform == TargetPlatform.windows ||
+        defaultTargetPlatform == TargetPlatform.linux ||
+        defaultTargetPlatform == TargetPlatform.macOS;
+  }
+
   int _page = 0;
   final int _size = 10;
   List<Anuncio> _anuncios = [];
@@ -90,6 +100,15 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
   }
 
   Future<void> _initializePage() async {
+    if (_isDesktopWeb) {
+      setState(() {
+        _locationAllowed = false;
+        _isSearchActive = false;
+      });
+      await _loadAnuncios();
+      return;
+    }
+
     try {
       final location = await LocationService().getUserLocation();
       setState(() {
@@ -241,6 +260,8 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                 final stackSearchControls = constraints.maxWidth < 430;
                 final compactDistanceWidth =
                     constraints.maxWidth < 460 ? 104.0 : 120.0;
+                final showCepField = _isDesktopWeb || !_locationAllowed;
+                final showDistanceSelector = !_isDesktopWeb && _locationAllowed;
 
                 Widget cepField() {
                   final cepFieldWidth =
@@ -305,62 +326,65 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                         ? Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              cepField(),
-                              const SizedBox(height: 12),
-                              stackSearchControls
-                                  ? Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        SearchBarWidget(
-                                          onChanged: (value) => _searchTerm = value,
-                                          onSubmitted: (value) =>
-                                              _loadAnuncios(isNewSearch: true),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        SizedBox(
-                                          width: compactDistanceWidth,
-                                          child: DistanceSelectorWidget(
-                                            selectedKm: _selectedDistanceKm,
-                                            onChanged: (km) {
-                                              setState(() =>
-                                                  _selectedDistanceKm = km);
-                                              _loadAnuncios(isNewSearch: true);
-                                            },
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                  : Row(
-                                      children: [
-                                        Expanded(
-                                          child: SearchBarWidget(
-                                            onChanged: (value) =>
-                                                _searchTerm = value,
-                                            onSubmitted: (value) =>
-                                                _loadAnuncios(isNewSearch: true),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        SizedBox(
-                                          width: compactDistanceWidth,
-                                          child: DistanceSelectorWidget(
-                                            selectedKm: _selectedDistanceKm,
-                                            onChanged: (km) {
-                                              setState(() =>
-                                                  _selectedDistanceKm = km);
-                                              _loadAnuncios(isNewSearch: true);
-                                            },
-                                          ),
-                                        ),
-                                      ],
+                              if (showCepField) ...[
+                                cepField(),
+                                const SizedBox(height: 12),
+                              ],
+                              if (stackSearchControls && showDistanceSelector)
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SearchBarWidget(
+                                      onChanged: (value) => _searchTerm = value,
+                                      onSubmitted: (value) =>
+                                          _loadAnuncios(isNewSearch: true),
                                     ),
+                                    const SizedBox(height: 8),
+                                    SizedBox(
+                                      width: compactDistanceWidth,
+                                      child: DistanceSelectorWidget(
+                                        selectedKm: _selectedDistanceKm,
+                                        onChanged: (km) {
+                                          setState(() => _selectedDistanceKm = km);
+                                          _loadAnuncios(isNewSearch: true);
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              else
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: SearchBarWidget(
+                                        onChanged: (value) => _searchTerm = value,
+                                        onSubmitted: (value) =>
+                                            _loadAnuncios(isNewSearch: true),
+                                      ),
+                                    ),
+                                    if (showDistanceSelector) ...[
+                                      const SizedBox(width: 8),
+                                      SizedBox(
+                                        width: compactDistanceWidth,
+                                        child: DistanceSelectorWidget(
+                                          selectedKm: _selectedDistanceKm,
+                                          onChanged: (km) {
+                                            setState(() => _selectedDistanceKm = km);
+                                            _loadAnuncios(isNewSearch: true);
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
                             ],
                           )
                         : Row(
                             children: [
-                              cepField(),
-                              const SizedBox(width: 12),
+                              if (showCepField) ...[
+                                cepField(),
+                                const SizedBox(width: 12),
+                              ],
                               Expanded(
                                 child: SearchBarWidget(
                                   onChanged: (value) => _searchTerm = value,
@@ -368,17 +392,19 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                                       _loadAnuncios(isNewSearch: true),
                                 ),
                               ),
-                              const SizedBox(width: 16),
-                              SizedBox(
-                                width: 130,
-                                child: DistanceSelectorWidget(
-                                  selectedKm: _selectedDistanceKm,
-                                  onChanged: (km) {
-                                    setState(() => _selectedDistanceKm = km);
-                                    _loadAnuncios(isNewSearch: true);
-                                  },
+                              if (showDistanceSelector) ...[
+                                const SizedBox(width: 16),
+                                SizedBox(
+                                  width: 130,
+                                  child: DistanceSelectorWidget(
+                                    selectedKm: _selectedDistanceKm,
+                                    onChanged: (km) {
+                                      setState(() => _selectedDistanceKm = km);
+                                      _loadAnuncios(isNewSearch: true);
+                                    },
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                   ),

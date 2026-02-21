@@ -145,7 +145,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
     try {
       List<Anuncio> newAnuncios;
 
-      if (_isSearchActive && _locationAllowed) {
+      if (_isSearchActive && _locationAllowed && _cepFilter.isNotEmpty) {
         newAnuncios = await Provider.of<AnuncioService>(
           context,
           listen: false,

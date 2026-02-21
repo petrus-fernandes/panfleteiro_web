@@ -192,7 +192,6 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
     const double webBreakpoint = 1350;
     const double tabletBreakpoint = 800;
     const double searchSectionMaxWidth = 900;
-    const double searchSectionLeftOffset = -16;
 
     int crossAxisCount;
     if (screenWidth > webBreakpoint) {
@@ -214,14 +213,11 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
       gridPadding = const EdgeInsets.only(left: 15.0, right: 15.0);
     }
 
-    EdgeInsets textFieldPadding;
-    if (screenWidth > tabletBreakpoint) {
-      textFieldPadding =
-          const EdgeInsets.only(left: 40.0, right: 40.0, top: 40.0);
-    } else {
-      textFieldPadding =
-          const EdgeInsets.only(left: 5.0, right: 5.0, top: 40.0);
-    }
+    final EdgeInsets textFieldPadding = EdgeInsets.only(
+      left: gridPadding.left,
+      right: gridPadding.right,
+      top: 40.0,
+    );
 
     return Scaffold(
       appBar: const AnuncioAppBar(),
@@ -241,87 +237,150 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                   maxWidth = searchSectionMaxWidth;
                 }
 
+                final isVerySmall = constraints.maxWidth < 520;
+                final stackSearchControls = constraints.maxWidth < 430;
+                final compactDistanceWidth =
+                    constraints.maxWidth < 460 ? 104.0 : 120.0;
+
+                Widget cepField() {
+                  final cepFieldWidth =
+                      constraints.maxWidth < 140 ? constraints.maxWidth : 140.0;
+
+                  return SizedBox(
+                    width: cepFieldWidth,
+                    child: TextField(
+                      controller: _cepController,
+                      keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.search,
+                      maxLength: 9,
+                      decoration: InputDecoration(
+                        hintText: 'CEP',
+                        counterText: '',
+                        prefixIcon: const Icon(
+                          Icons.location_on_outlined,
+                          size: 20,
+                        ),
+                        filled: true,
+                        fillColor: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest
+                            .withOpacity(0.35),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 10,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withOpacity(0.35),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                      onSubmitted: (value) {
+                        setState(() {
+                          _cepFilter = value.trim();
+                          _locationAllowed = true;
+                        });
+                        _loadAnuncios(isNewSearch: true);
+                      },
+                    ),
+                  );
+                }
+
                 return Align(
                   alignment: Alignment.center,
-                  child: Transform.translate(
-                    offset: const Offset(searchSectionLeftOffset, 0),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: maxWidth),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: 140,
-                            child: TextField(
-                              controller: _cepController,
-                              keyboardType: TextInputType.number,
-                              textInputAction: TextInputAction.search,
-                              maxLength: 9,
-                              decoration: InputDecoration(
-                                hintText: 'CEP',
-                                counterText: '',
-                                prefixIcon: const Icon(
-                                  Icons.location_on_outlined,
-                                  size: 20,
-                                ),
-                                filled: true,
-                                fillColor: Theme.of(context)
-                                    .colorScheme
-                                    .surfaceContainerHighest
-                                    .withOpacity(0.35),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 10,
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: BorderSide(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .primary
-                                        .withOpacity(0.35),
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: BorderSide(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .primary,
-                                    width: 1.5,
-                                  ),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: maxWidth),
+                    child: isVerySmall
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              cepField(),
+                              const SizedBox(height: 12),
+                              stackSearchControls
+                                  ? Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        SearchBarWidget(
+                                          onChanged: (value) => _searchTerm = value,
+                                          onSubmitted: (value) =>
+                                              _loadAnuncios(isNewSearch: true),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        SizedBox(
+                                          width: compactDistanceWidth,
+                                          child: DistanceSelectorWidget(
+                                            selectedKm: _selectedDistanceKm,
+                                            onChanged: (km) {
+                                              setState(() =>
+                                                  _selectedDistanceKm = km);
+                                              _loadAnuncios(isNewSearch: true);
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : Row(
+                                      children: [
+                                        Expanded(
+                                          child: SearchBarWidget(
+                                            onChanged: (value) =>
+                                                _searchTerm = value,
+                                            onSubmitted: (value) =>
+                                                _loadAnuncios(isNewSearch: true),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        SizedBox(
+                                          width: compactDistanceWidth,
+                                          child: DistanceSelectorWidget(
+                                            selectedKm: _selectedDistanceKm,
+                                            onChanged: (km) {
+                                              setState(() =>
+                                                  _selectedDistanceKm = km);
+                                              _loadAnuncios(isNewSearch: true);
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ],
+                          )
+                        : Row(
+                            children: [
+                              cepField(),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: SearchBarWidget(
+                                  onChanged: (value) => _searchTerm = value,
+                                  onSubmitted: (value) =>
+                                      _loadAnuncios(isNewSearch: true),
                                 ),
                               ),
-                              onSubmitted: (value) {
-                                setState(() {
-                                  _cepFilter = value.trim();
-                                  _locationAllowed = true;
-                                });
-                                _loadAnuncios(isNewSearch: true);
-                              },
-                            ),
+                              const SizedBox(width: 16),
+                              SizedBox(
+                                width: 130,
+                                child: DistanceSelectorWidget(
+                                  selectedKm: _selectedDistanceKm,
+                                  onChanged: (km) {
+                                    setState(() => _selectedDistanceKm = km);
+                                    _loadAnuncios(isNewSearch: true);
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: SearchBarWidget(
-                              onChanged: (value) => _searchTerm = value,
-                              onSubmitted: (value) =>
-                                  _loadAnuncios(isNewSearch: true),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          SizedBox(
-                            width: 130,
-                            child: DistanceSelectorWidget(
-                              selectedKm: _selectedDistanceKm,
-                              onChanged: (km) {
-                                setState(() => _selectedDistanceKm = km);
-                                _loadAnuncios(isNewSearch: true);
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
                 );
               },

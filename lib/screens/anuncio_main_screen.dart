@@ -12,6 +12,8 @@ import '../services/location_service.dart';
 import '../services/anuncio_service.dart';
 import '../models/anuncio.dart';
 import '../widgets/anuncio_grid.dart';
+import 'package:flutter/services.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class AnuncioMainScreen extends StatefulWidget {
   const AnuncioMainScreen({super.key});
@@ -35,7 +37,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
   List<Anuncio> _anuncios = [];
   bool _isLoading = false;
   String _searchTerm = '';
-  String _cepFilter = '';
+  String get _cepFilter => _cepMaskFormatter.getUnmaskedText();
   double? _latitude;
   double? _longitude;
   bool _isSearchActive = false;
@@ -46,12 +48,28 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
   bool _acceptedTerms = false;
   int _selectedDistanceKm = 5;
   final TextEditingController _cepController = TextEditingController();
+  final _cepMaskFormatter = MaskTextInputFormatter(
+    mask: '#####-###',
+    filter: { "#": RegExp(r'[0-9]') },
+    type: MaskAutoCompletionType.lazy,
+  );
+  final FocusNode _selectPatternFocusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_scrollListener);
     _checkAcceptedTerms();
+    _selectPatternFocusNode.addListener(() {
+      if (_selectPatternFocusNode.hasFocus) {
+        Future.delayed(const Duration(milliseconds: 1), () {
+          _cepController.selection = TextSelection(
+            baseOffset: 0,
+            extentOffset: _cepController.text.length,
+          );
+        });
+      }
+    });
   }
 
   Future<void> _checkAcceptedTerms() async {
@@ -193,6 +211,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
     _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
     _cepController.dispose();
+    _selectPatternFocusNode.dispose();
     super.dispose();
   }
 
@@ -271,6 +290,8 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                     child: TextField(
                       controller: _cepController,
                       keyboardType: TextInputType.number,
+                      inputFormatters: [_cepMaskFormatter],
+                      focusNode: _selectPatternFocusNode,
                       textInputAction: TextInputAction.search,
                       maxLength: 9,
                       decoration: InputDecoration(
@@ -306,9 +327,8 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                           ),
                         ),
                       ),
-                      onSubmitted: (value) {
+                      onSubmitted: (_) {
                         setState(() {
-                          _cepFilter = value.trim();
                           _locationAllowed = true;
                         });
                         _loadAnuncios(isNewSearch: true);

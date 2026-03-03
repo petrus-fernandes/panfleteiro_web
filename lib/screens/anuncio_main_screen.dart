@@ -55,6 +55,9 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
   );
   final FocusNode _selectPatternFocusNode = FocusNode();
 
+  bool get _hasCepValidationError =>
+      _cepController.text.isNotEmpty && _cepController.text.length < 9;
+
   @override
   void initState() {
     super.initState();
@@ -206,6 +209,15 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
     });
   }
 
+  void _startNewSearch() {
+    if (_hasCepValidationError) {
+      setState(() {});
+      return;
+    }
+
+    _loadAnuncios(isNewSearch: true);
+  }
+
   @override
   void dispose() {
     _scrollController.removeListener(_scrollListener);
@@ -297,6 +309,8 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                       decoration: InputDecoration(
                         hintText: 'CEP',
                         counterText: '',
+                        errorText:
+                            _hasCepValidationError ? 'CEP deve ter 9 dígitos.' : null,
                         prefixIcon: const Icon(
                           Icons.location_on_outlined,
                           size: 20,
@@ -328,11 +342,17 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                         ),
                       ),
                       onSubmitted: (_) {
+                        if (_hasCepValidationError) {
+                          setState(() {});
+                          return;
+                        }
+
                         setState(() {
                           _locationAllowed = true;
                         });
                         _loadAnuncios(isNewSearch: true);
                       },
+                      onChanged: (_) => setState(() {}),
                     ),
                   );
                 }
@@ -355,8 +375,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                                   children: [
                                     SearchBarWidget(
                                       onChanged: (value) => _searchTerm = value,
-                                      onSubmitted: (value) =>
-                                          _loadAnuncios(isNewSearch: true),
+                                      onSubmitted: (value) => _startNewSearch(),
                                     ),
                                     const SizedBox(height: 8),
                                     SizedBox(
@@ -365,7 +384,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                                         selectedKm: _selectedDistanceKm,
                                         onChanged: (km) {
                                           setState(() => _selectedDistanceKm = km);
-                                          _loadAnuncios(isNewSearch: true);
+                                          _startNewSearch();
                                         },
                                       ),
                                     ),
@@ -377,8 +396,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                                     Expanded(
                                       child: SearchBarWidget(
                                         onChanged: (value) => _searchTerm = value,
-                                        onSubmitted: (value) =>
-                                            _loadAnuncios(isNewSearch: true),
+                                        onSubmitted: (value) => _startNewSearch(),
                                       ),
                                     ),
                                     const SizedBox(width: 8),
@@ -388,7 +406,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                                         selectedKm: _selectedDistanceKm,
                                         onChanged: (km) {
                                           setState(() => _selectedDistanceKm = km);
-                                          _loadAnuncios(isNewSearch: true);
+                                          _startNewSearch();
                                         },
                                       ),
                                     ),
@@ -405,8 +423,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                               Expanded(
                                 child: SearchBarWidget(
                                   onChanged: (value) => _searchTerm = value,
-                                  onSubmitted: (value) =>
-                                      _loadAnuncios(isNewSearch: true),
+                                  onSubmitted: (value) => _startNewSearch(),
                                 ),
                               ),
                               const SizedBox(width: 16),
@@ -416,7 +433,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                                   selectedKm: _selectedDistanceKm,
                                   onChanged: (km) {
                                     setState(() => _selectedDistanceKm = km);
-                                    _loadAnuncios(isNewSearch: true);
+                                    _startNewSearch();
                                   },
                                 ),
                               ),

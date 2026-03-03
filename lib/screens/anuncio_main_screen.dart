@@ -297,9 +297,8 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                   final cepFieldWidth =
                       constraints.maxWidth < 140 ? constraints.maxWidth : 140.0;
 
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  return Stack(
+                    clipBehavior: Clip.none,
                     children: [
                       SizedBox(
                         width: cepFieldWidth,
@@ -358,13 +357,15 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                         ),
                       ),
                       if (_hasCepValidationError)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: OverflowBox(
-                            maxWidth: 240,
-                            alignment: Alignment.centerLeft,
+                        Positioned(
+                          left: 0,
+                          top: 56,
+                          child: SizedBox(
+                            width: 240,
                             child: Text(
                               'CEP deve ter 9 dígitos.',
+                              maxLines: 2,
+                              overflow: TextOverflow.visible,
                               style: TextStyle(
                                 color: Theme.of(context).colorScheme.error,
                                 fontSize: 12,
@@ -386,7 +387,9 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                             children: [
                               if (showCepField) ...[
                                 cepField(),
-                                const SizedBox(height: 12),
+                                SizedBox(
+                                  height: _hasCepValidationError ? 28 : 12,
+                                ),
                               ],
                               if (stackSearchControls)
                                 Column(

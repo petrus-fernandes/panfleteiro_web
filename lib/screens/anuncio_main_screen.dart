@@ -163,7 +163,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
     try {
       List<Anuncio> newAnuncios;
 
-      if (_isSearchActive && _locationAllowed && _cepFilter.isNotEmpty) {
+      if (_isSearchActive || _cepFilter.isNotEmpty) {
         newAnuncios = await Provider.of<AnuncioService>(
           context,
           listen: false,
@@ -174,8 +174,8 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
             _page,
             _size,
             _selectedDistanceKm,
-            cep: _cepFilter,
-          );
+            cep: _cepFilter
+        );
       } else {
         newAnuncios = await Provider.of<AnuncioService>(
           context,

@@ -55,6 +55,9 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
   );
   final FocusNode _selectPatternFocusNode = FocusNode();
 
+  bool get _hasCepValidationError =>
+      _cepController.text.isNotEmpty && _cepController.text.length < 9;
+
   @override
   void initState() {
     super.initState();
@@ -206,6 +209,15 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
     });
   }
 
+  void _startNewSearch() {
+    if (_hasCepValidationError) {
+      setState(() {});
+      return;
+    }
+
+    _loadAnuncios(isNewSearch: true);
+  }
+
   @override
   void dispose() {
     _scrollController.removeListener(_scrollListener);
@@ -285,55 +297,83 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                   final cepFieldWidth =
                       constraints.maxWidth < 140 ? constraints.maxWidth : 140.0;
 
-                  return SizedBox(
-                    width: cepFieldWidth,
-                    child: TextField(
-                      controller: _cepController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [_cepMaskFormatter],
-                      focusNode: _selectPatternFocusNode,
-                      textInputAction: TextInputAction.search,
-                      maxLength: 9,
-                      decoration: InputDecoration(
-                        hintText: 'CEP',
-                        counterText: '',
-                        prefixIcon: const Icon(
-                          Icons.location_on_outlined,
-                          size: 20,
-                        ),
-                        filled: true,
-                        fillColor: Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerHighest
-                            .withOpacity(0.35),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 10,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide(
-                            color: Theme.of(context)
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      SizedBox(
+                        width: cepFieldWidth,
+                        child: TextField(
+                          controller: _cepController,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [_cepMaskFormatter],
+                          focusNode: _selectPatternFocusNode,
+                          textInputAction: TextInputAction.search,
+                          maxLength: 9,
+                          decoration: InputDecoration(
+                            hintText: 'CEP',
+                            counterText: '',
+                            prefixIcon: const Icon(
+                              Icons.location_on_outlined,
+                              size: 20,
+                            ),
+                            filled: true,
+                            fillColor: Theme.of(context)
                                 .colorScheme
-                                .primary
+                                .surfaceContainerHighest
                                 .withOpacity(0.35),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 10,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withOpacity(0.35),
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(
+                                color: Theme.of(context).colorScheme.primary,
+                                width: 1.5,
+                              ),
+                            ),
                           ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide(
-                            color: Theme.of(context).colorScheme.primary,
-                            width: 1.5,
-                          ),
+                          onSubmitted: (_) {
+                            if (_hasCepValidationError) {
+                              setState(() {});
+                              return;
+                            }
+
+                            setState(() {
+                              _locationAllowed = true;
+                            });
+                            _loadAnuncios(isNewSearch: true);
+                          },
+                          onChanged: (_) => setState(() {}),
                         ),
                       ),
-                      onSubmitted: (_) {
-                        setState(() {
-                          _locationAllowed = true;
-                        });
-                        _loadAnuncios(isNewSearch: true);
-                      },
-                    ),
+                      if (_hasCepValidationError)
+                        Positioned(
+                          left: 0,
+                          top: 56,
+                          child: SizedBox(
+                            width: 240,
+                            child: Text(
+                              'CEP deve ter 9 dígitos',
+                              maxLines: 2,
+                              overflow: TextOverflow.visible,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   );
                 }
 
@@ -347,7 +387,9 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                             children: [
                               if (showCepField) ...[
                                 cepField(),
-                                const SizedBox(height: 12),
+                                SizedBox(
+                                  height: _hasCepValidationError ? 28 : 12,
+                                ),
                               ],
                               if (stackSearchControls)
                                 Column(
@@ -355,8 +397,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                                   children: [
                                     SearchBarWidget(
                                       onChanged: (value) => _searchTerm = value,
-                                      onSubmitted: (value) =>
-                                          _loadAnuncios(isNewSearch: true),
+                                      onSubmitted: (value) => _startNewSearch(),
                                     ),
                                     const SizedBox(height: 8),
                                     SizedBox(
@@ -365,7 +406,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                                         selectedKm: _selectedDistanceKm,
                                         onChanged: (km) {
                                           setState(() => _selectedDistanceKm = km);
-                                          _loadAnuncios(isNewSearch: true);
+                                          _startNewSearch();
                                         },
                                       ),
                                     ),
@@ -377,8 +418,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                                     Expanded(
                                       child: SearchBarWidget(
                                         onChanged: (value) => _searchTerm = value,
-                                        onSubmitted: (value) =>
-                                            _loadAnuncios(isNewSearch: true),
+                                        onSubmitted: (value) => _startNewSearch(),
                                       ),
                                     ),
                                     const SizedBox(width: 8),
@@ -388,7 +428,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                                         selectedKm: _selectedDistanceKm,
                                         onChanged: (km) {
                                           setState(() => _selectedDistanceKm = km);
-                                          _loadAnuncios(isNewSearch: true);
+                                          _startNewSearch();
                                         },
                                       ),
                                     ),
@@ -405,8 +445,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                               Expanded(
                                 child: SearchBarWidget(
                                   onChanged: (value) => _searchTerm = value,
-                                  onSubmitted: (value) =>
-                                      _loadAnuncios(isNewSearch: true),
+                                  onSubmitted: (value) => _startNewSearch(),
                                 ),
                               ),
                               const SizedBox(width: 16),
@@ -416,7 +455,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                                   selectedKm: _selectedDistanceKm,
                                   onChanged: (km) {
                                     setState(() => _selectedDistanceKm = km);
-                                    _loadAnuncios(isNewSearch: true);
+                                    _startNewSearch();
                                   },
                                 ),
                               ),

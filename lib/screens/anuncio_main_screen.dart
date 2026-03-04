@@ -45,6 +45,7 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
   bool _hasMore = true;
   final Debouncer _scrollDebouncer = Debouncer(milliseconds: 500);
   bool _locationAllowed = false;
+  bool _isResolvingLocation = false;
   bool _acceptedTerms = false;
   int _selectedDistanceKm = 5;
   final TextEditingController _cepController = TextEditingController();
@@ -124,11 +125,16 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
     if (_isDesktopWeb) {
       setState(() {
         _locationAllowed = false;
+        _isResolvingLocation = false;
         _isSearchActive = false;
       });
       await _loadAnuncios();
       return;
     }
+
+    setState(() {
+      _isResolvingLocation = true;
+    });
 
     try {
       final location = await LocationService().getUserLocation();
@@ -144,6 +150,12 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
         _locationAllowed = false;
         _isSearchActive = false;
       });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isResolvingLocation = false;
+        });
+      }
     }
 
     await _loadAnuncios();
@@ -291,7 +303,8 @@ class _AnuncioMainScreenState extends State<AnuncioMainScreen> {
                 final stackSearchControls = constraints.maxWidth < 430;
                 final compactDistanceWidth =
                     constraints.maxWidth < 460 ? 104.0 : 120.0;
-                final showCepField = _isDesktopWeb || !_locationAllowed;
+                final showCepField =
+                    _isDesktopWeb || (!_locationAllowed && !_isResolvingLocation);
 
                 Widget cepField() {
                   final cepFieldWidth =

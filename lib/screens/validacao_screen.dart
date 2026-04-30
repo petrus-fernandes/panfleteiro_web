@@ -74,7 +74,7 @@ class _ValidacaoScreenState extends State<ValidacaoScreen> {
 
   Future<void> _enviar() async {
     final String baseUrl = dotenv.env['API_BASE_URL']!;
-    final url = Uri.parse('$baseUrl/v1/anuncios/lot');
+    final url = Uri.parse('$baseUrl/v1/anuncios');
     final token = await getToken();
 
     try {

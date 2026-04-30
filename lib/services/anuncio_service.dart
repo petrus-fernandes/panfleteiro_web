@@ -11,7 +11,7 @@ class AnuncioService {
     int page,
     int size,
   ) async {
-    final uri = Uri.parse('$baseUrl/v1/anuncios/buscaPorNome').replace(
+    final uri = Uri.parse('$baseUrl/v1/anuncios').replace(
       queryParameters: {
         'productName': productName,
         'page': page.toString(),
